@@ -1,0 +1,2185 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#4f46e5">
+<title>WeekPlan — помощник работающего студента</title>
+<style>
+  :root{
+    --bg:#f4f5f7;--card:#ffffff;--ink:#1f2330;--muted:#6b7280;--line:#e5e7eb;
+    --primary:#4f46e5;--primary-soft:#eef2ff;
+    --green:#16a34a;--green-soft:#dcfce7;
+    --amber:#d97706;--amber-soft:#fef3c7;
+    --red:#dc2626;--red-soft:#fee2e2;
+    --blue:#2563eb;--blue-soft:#dbeafe;
+    --purple:#7c3aed;--purple-soft:#ede9fe;
+    --teal:#0d9488;--teal-soft:#ccfbf1;
+    --radius:12px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    font-size:15px;line-height:1.4}
+  body{padding-bottom:72px}
+  .wrap{max-width:680px;margin:0 auto;padding:0 14px}
+  header{background:var(--primary);color:#fff;padding:16px 14px 14px;position:sticky;top:0;z-index:20}
+  header .wrap{padding:0}
+  header h1{font-size:18px;margin:0;font-weight:600}
+  header p{font-size:12px;margin:4px 0 0;opacity:.9}
+  .tabs{display:flex;gap:6px;margin-top:12px;overflow-x:auto;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex:0 0 auto;background:rgba(255,255,255,.16);color:#fff;border:none;
+    padding:7px 12px;border-radius:999px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
+  .tab.active{background:#fff;color:var(--primary)}
+  .section{display:none;padding-top:14px}
+  .section.active{display:block}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:14px}
+  .card h2{font-size:15px;margin:0 0 10px;font-weight:600}
+  .card h3{font-size:14px;margin:14px 0 8px;font-weight:600}
+  .field{margin-bottom:10px}
+  .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:500}
+  .field input,.field select,.field textarea{width:100%;padding:9px 10px;font-size:14px;border:1px solid var(--line);
+    border-radius:8px;background:#fff;color:var(--ink);font-family:inherit}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .btn{display:block;width:100%;padding:11px;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-secondary{background:#fff;color:var(--primary);border:1px solid var(--primary)}
+  .btn-ghost{background:#f3f4f6;color:var(--ink)}
+  .btn-danger{background:#fff;color:var(--red);border:1px solid #fecaca}
+  .btn-teal{background:var(--teal);color:#fff}
+  .btn:active{transform:scale(.98)}
+  .btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .btn-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .empty{color:var(--muted);font-size:13px;text-align:center;padding:18px 8px}
+  .item{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px;background:#fff}
+  .item .row-info{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+  .item .title{font-weight:600;font-size:14px;word-break:break-word}
+  .item .meta{font-size:12px;color:var(--muted);margin-top:3px}
+  .item .del{background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;padding:0 4px;line-height:1}
+  .item .actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .mini{font-size:12px;padding:6px 9px;border-radius:7px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:500}
+  .mini.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .mini.ghost{background:#f3f4f6}
+  .mini.danger{color:var(--red);border-color:#fecaca}
+  .mini.up,.mini.down{padding:4px 9px}
+  .badge{display:inline-block;font-size:11px;padding:2px 7px;border-radius:999px;font-weight:600}
+  .b-work{background:var(--blue-soft);color:var(--blue)}
+  .b-study{background:var(--purple-soft);color:var(--purple)}
+  .b-personal{background:var(--amber-soft);color:var(--amber)}
+  .b-other{background:#f3f4f6;color:var(--ink)}
+  .b-uni{background:var(--teal-soft);color:var(--teal)}
+  .b-high{background:var(--red-soft);color:var(--red)}
+  .b-mid{background:var(--amber-soft);color:var(--amber)}
+  .b-low{background:var(--green-soft);color:var(--green)}
+  .b-planned{background:var(--blue-soft);color:var(--blue)}
+  .b-progress{background:var(--amber-soft);color:var(--amber)}
+  .b-done{background:var(--green-soft);color:var(--green)}
+  .b-overdue{background:var(--red-soft);color:var(--red)}
+  .demo-tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:6px;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;font-weight:600;letter-spacing:.3px}
+  /* Day / calendar */
+  .day{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-bottom:12px}
+  .day-head{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:#fafafa;border-bottom:1px solid var(--line)}
+  .day-head .name{font-weight:600;font-size:14px}
+  .day-head .date{font-size:12px;color:var(--muted)}
+  .slot{padding:8px 12px;border-bottom:1px solid var(--line);font-size:13px}
+  .slot:last-child{border-bottom:none}
+  .slot .time{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px;margin-right:6px}
+  .slot .lbl{font-weight:500}
+  .slot.free{background:var(--green-soft);color:#166534}
+  .slot.study{background:var(--purple-soft);color:#5b21b6}
+  .slot.fixed-work{background:var(--blue-soft);color:#1e40af}
+  .slot.fixed-study{background:var(--blue-soft);color:#1e40af}
+  .slot.fixed-personal{background:var(--amber-soft);color:#92400e}
+  .slot.fixed-other{background:#f3f4f6;color:var(--ink)}
+  .slot.uni{background:var(--teal-soft);color:#115e59}
+  .slot.conflict{background:var(--red-soft);color:#991b1b}
+  .slot.pinned{background:#faf5ff;color:#6b21a8;border-left:3px solid var(--purple)}
+  .slot small{display:block;color:inherit;opacity:.8;margin-top:2px}
+  /* Summary */
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .stat{background:#fafafa;border:1px solid var(--line);border-radius:10px;padding:10px}
+  .stat .num{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+  .stat .lbl{font-size:11px;color:var(--muted);margin-top:2px}
+  .stat.green .num{color:var(--green)}
+  .stat.red .num{color:var(--red)}
+  .stat.blue .num{color:var(--blue)}
+  .stat.purple .num{color:var(--purple)}
+  .stat.teal .num{color:var(--teal)}
+  .conflict-item{border-left:3px solid var(--red);background:var(--red-soft);border-radius:6px;padding:8px 10px;margin-bottom:6px;font-size:13px}
+  .conflict-item .ci-title{font-weight:600;color:#991b1b}
+  .conflict-item .ci-desc{color:#7f1d1d;margin-top:2px}
+  .unplaced-item{border:1px solid #fecaca;background:#fff;border-radius:10px;padding:10px;margin-bottom:8px}
+  .unplaced-item .ui-title{font-weight:600;font-size:14px}
+  .unplaced-item .ui-meta{font-size:12px;color:var(--muted);margin-top:3px}
+  .unplaced-item .ui-reason{font-size:12px;color:var(--red);margin-top:5px;background:var(--red-soft);padding:5px 8px;border-radius:6px}
+  .deadline-list{margin-top:6px}
+  .deadline-list .dl-item{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px dashed var(--line)}
+  .deadline-list .dl-item:last-child{border-bottom:none}
+  .toast{position:fixed;left:0;right:0;bottom:0;background:#111827;color:#fff;padding:12px 16px;font-size:13px;z-index:100;transform:translateY(100%);transition:transform .25s}
+  .toast.show{transform:translateY(0)}
+  .toast.err{background:var(--red)}
+  .toast.ok{background:var(--green)}
+  /* Modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:none;align-items:flex-end;justify-content:center}
+  .modal-bg.show{display:flex}
+  .modal{background:#fff;width:100%;max-width:680px;border-radius:16px 16px 0 0;max-height:92vh;overflow-y:auto;padding:16px}
+  .modal h3{font-size:16px;margin:0 0 12px;font-weight:600}
+  .modal .close{position:sticky;top:0;float:right;background:#fff;border:1px solid var(--line);width:30px;height:30px;border-radius:50%;font-size:18px;cursor:pointer;color:var(--muted)}
+  .err-msg{color:var(--red);font-size:12px;margin-top:4px}
+  .legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+  .legend .lg{font-size:11px;padding:3px 8px;border-radius:6px}
+  .link-btn{background:none;border:none;color:var(--primary);font-size:13px;padding:0;cursor:pointer;text-decoration:underline}
+  .small{font-size:12px;color:var(--muted)}
+  .muted{color:var(--muted)}
+  hr{border:none;border-top:1px solid var(--line);margin:10px 0}
+  .switch{display:flex;align-items:center;gap:8px;margin:4px 0 8px}
+  .switch input{width:18px;height:18px;accent-color:var(--primary)}
+  .checkbox-row{display:flex;gap:14px;flex-wrap:wrap;margin:6px 0}
+  .checkbox-row label{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--ink)}
+  .checkbox-row input{width:16px;height:16px;accent-color:var(--primary)}
+  /* Uni schedule */
+  .week-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0}
+  .week-nav .wn-info{font-size:13px;font-weight:600}
+  .uni-lesson{border-left:3px solid var(--teal);background:#f0fdfa;border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:13px}
+  .uni-lesson .ul-time{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px}
+  .uni-lesson .ul-title{font-weight:600}
+  .uni-lesson .ul-meta{font-size:11px;color:var(--muted);margin-top:2px}
+  .uni-lesson.cancelled{opacity:.5;text-decoration:line-through;border-left-color:var(--red);background:var(--red-soft)}
+  .uni-lesson.moved{border-left-color:var(--amber);background:var(--amber-soft)}
+  .status-line{display:flex;align-items:center;gap:8px;font-size:12px;margin:6px 0;flex-wrap:wrap}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+  .dot.ok{background:var(--green)}.dot.warn{background:var(--amber)}.dot.err{background:var(--red)}.dot.demo{background:#c2410c}
+  /* Tasks status */
+  .task-status-sel{font-size:12px;padding:4px 8px;border-radius:7px;border:1px solid var(--line);background:#fff}
+  .session-chip{display:inline-block;font-size:11px;background:var(--purple-soft);color:#5b21b6;padding:2px 7px;border-radius:6px;margin:2px 4px 0 0}
+  .partial-warn{font-size:12px;color:var(--red);background:var(--red-soft);padding:5px 8px;border-radius:6px;margin-top:5px}
+  .diff-line{font-size:12px;padding:5px 8px;border-radius:6px;margin-bottom:4px}
+  .diff-moved{background:var(--amber-soft);color:#92400e}
+  .diff-added{background:var(--green-soft);color:#166534}
+  .diff-removed{background:var(--red-soft);color:#991b1b}
+  /* Materials */
+  .disc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .disc-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff;cursor:pointer;transition:.15s}
+  .disc-card:active{transform:scale(.98)}
+  .disc-card .dc-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:6px}
+  .disc-card .dc-name{font-weight:600;font-size:14px}
+  .disc-card .dc-desc{font-size:11px;color:var(--muted);margin-top:2px;min-height:26px}
+  .disc-card .dc-meta{font-size:11px;color:var(--muted);margin-top:6px;display:flex;gap:8px;flex-wrap:wrap}
+  .search-box{width:100%;padding:9px 12px;font-size:14px;border:1px solid var(--line);border-radius:999px;margin-bottom:10px}
+  .quiz-card{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px}
+  .quiz-card .qc-title{font-weight:600;font-size:14px}
+  .quiz-card .qc-meta{font-size:12px;color:var(--muted);margin-top:3px}
+  .q-progress{height:6px;background:var(--line);border-radius:999px;overflow:hidden;margin:10px 0}
+  .q-progress > div{height:100%;background:var(--primary);transition:width .2s}
+  .q-option{border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin-bottom:7px;cursor:pointer;font-size:14px;display:flex;gap:9px;align-items:flex-start}
+  .q-option.sel{border-color:var(--primary);background:var(--primary-soft)}
+  .q-option.correct{border-color:var(--green);background:var(--green-soft)}
+  .q-option.wrong{border-color:var(--red);background:var(--red-soft)}
+  .q-option .qo-mark{font-weight:700;min-width:18px}
+  .q-explain{font-size:12px;color:var(--muted);background:#fafafa;border-radius:8px;padding:8px 10px;margin-top:6px}
+  .result-ring{width:96px;height:96px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:6px auto 12px;font-weight:700;font-size:22px}
+  /* Calendar export */
+  .sub-card{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;background:#fff}
+  .sub-card .sc-title{font-weight:600;font-size:14px;display:flex;align-items:center;gap:8px}
+  .sub-card .sc-instr{font-size:12px;color:var(--muted);margin:6px 0}
+  .sub-card .sc-steps{font-size:12px;color:var(--muted);padding-left:18px;margin:4px 0}
+  .sub-card .sc-steps li{margin:2px 0}
+  .copy-row{display:flex;gap:6px;align-items:center;margin-top:6px}
+  .copy-row input{flex:1;padding:8px;font-size:12px;border:1px solid var(--line);border-radius:8px;background:#fafafa;font-family:monospace}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:4px 0}
+  .seg button{border:none;background:#fff;padding:8px 11px;font-size:12px;cursor:pointer;font-weight:500}
+  .seg button.active{background:var(--primary);color:#fff}
+  .info-banner{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:12px;padding:8px 10px;border-radius:8px;margin:8px 0}
+  .ok-banner{background:var(--green-soft);border:1px solid #bbf7d0;color:#166534;font-size:12px;padding:8px 10px;border-radius:8px;margin:8px 0}
+  .tag-row{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+  @media(max-width:420px){
+    .disc-grid{grid-template-columns:1fr}
+    .stat-grid{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>WeekPlan</h1>
+    <p>Расписание вуза, задачи, тесты и экспорт в календарь — для работающего студента</p>
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-tab="week">Моя неделя</button>
+      <button class="tab" data-tab="uni">Расписание вуза</button>
+      <button class="tab" data-tab="fixed">Фиксированные события</button>
+      <button class="tab" data-tab="free">Доступное время</button>
+      <button class="tab" data-tab="tasks">Учебные задачи</button>
+      <button class="tab" data-tab="materials">Материалы</button>
+      <button class="tab" data-tab="result">Результат</button>
+      <button class="tab" data-tab="calendar">Календарь и экспорт</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- WEEK -->
+  <section class="section active" id="sec-week">
+    <div class="card">
+      <h2>Параметры недели</h2>
+      <div class="row">
+        <div class="field"><label>Дата начала недели</label><input type="date" id="weekStart"></div>
+        <div class="field"><label>Дата окончания недели</label><input type="date" id="weekEnd"></div>
+      </div>
+      <div class="field"><label>Буфер между событиями (минут)</label><input type="number" id="buffer" min="0" step="5" value="15"></div>
+      <p class="small">Буфер добавляется после каждого фиксированного события и учебной задачи, чтобы учесть время перехода и переключения.</p>
+      <button class="btn btn-primary" id="saveWeek">Сохранить параметры недели</button>
+    </div>
+    <div class="card">
+      <h2>Действия</h2>
+      <button class="btn btn-secondary" id="loadExample">Загрузить пример</button>
+      <div style="height:8px"></div>
+      <button class="btn btn-primary" id="calcBtn">Рассчитать план</button>
+      <div style="height:8px"></div>
+      <button class="btn btn-teal" id="replanBtn">Перепланировать неделю</button>
+      <div style="height:8px"></div>
+      <button class="btn btn-ghost" id="copyWeekBtn">Скопировать предыдущую неделю</button>
+      <div style="height:8px"></div>
+      <button class="btn btn-danger" id="clearWeek">Очистить неделю</button>
+    </div>
+    <div class="card">
+      <h2>Шаблоны расписания</h2>
+      <p class="small">Сохраните текущий набор событий и окон как шаблон, чтобы быстро применять его к новым неделям.</p>
+      <div id="templateList"></div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" id="saveTemplateBtn">Сохранить текущий как шаблон</button>
+        <button class="btn btn-ghost" id="applyTemplateBtn">Применить шаблон</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- UNI SCHEDULE -->
+  <section class="section" id="sec-uni">
+    <div class="card">
+      <h2>Расписание вуза</h2>
+      <span class="demo-tag">Данные учебного примера</span>
+      <p class="small" style="margin-top:6px">Укажите номер группы — расписание загрузится автоматически из встроенного демонстрационного набора. В реальном продукте данные могли бы приходить из информационной системы университета.</p>
+      <div class="row">
+        <div class="field"><label>Номер группы</label><input id="uniGroup" placeholder="15.14Д-ГГ02/23б" value="15.14Д-ГГ02/23б"></div>
+        <div class="field"><label>Статус</label><div class="status-line" id="uniStatus"><span class="dot demo"></span><span>не загружено</span></div></div>
+      </div>
+      <div class="btn-row3">
+        <button class="btn btn-primary" id="uniSaveGroup">Сохранить группу</button>
+        <button class="btn btn-secondary" id="uniRefresh">Обновить расписание</button>
+        <button class="btn btn-ghost" id="uniSim">Демо: изменить пару</button>
+      </div>
+      <p class="small" id="uniLastUpdated" style="margin-top:8px"></p>
+    </div>
+    <div class="card">
+      <div class="week-nav">
+        <button class="mini" id="uniPrevWeek">‹ Пред.</button>
+        <span class="wn-info" id="uniWeekLabel">—</span>
+        <button class="mini" id="uniNextWeek">След. ›</button>
+      </div>
+      <div id="uniWeekView"></div>
+    </div>
+  </section>
+
+  <!-- FIXED -->
+  <section class="section" id="sec-fixed">
+    <div class="card">
+      <h2>Фиксированные события</h2>
+      <p class="small">Работа и личные дела — события с жёстко заданным временем, которые нельзя переносить. Университетские пары загружаются отдельно во вкладке «Расписание вуза».</p>
+      <div id="fixedList"></div>
+      <button class="btn btn-primary" id="addFixed">Добавить событие</button>
+      <div style="height:8px"></div>
+      <button class="btn btn-ghost" id="addRecurring">Создать повторяющееся событие</button>
+    </div>
+  </section>
+
+  <!-- FREE -->
+  <section class="section" id="sec-free">
+    <div class="card">
+      <h2>Доступное время для учёбы</h2>
+      <p class="small">Окна, в которые вы готовы учиться. Из них алгоритм вычитает фиксированные события, пары вуза и буфер, получая реальные учебные интервалы.</p>
+      <div id="freeList"></div>
+      <button class="btn btn-primary" id="addFree">Добавить свободное окно</button>
+    </div>
+  </section>
+
+  <!-- TASKS -->
+  <section class="section" id="sec-tasks">
+    <div class="card">
+      <h2>Учебные задачи</h2>
+      <p class="small">Задачи можно дробить на несколько сессий, менять статус и закреплять за конкретным временем. Порядок — ближайший дедлайн, затем выше приоритет, затем больше длительность.</p>
+      <div id="taskList"></div>
+      <button class="btn btn-primary" id="addTask">Добавить задачу</button>
+    </div>
+  </section>
+
+  <!-- MATERIALS -->
+  <section class="section" id="sec-materials">
+    <div id="materialsArea"></div>
+  </section>
+
+  <!-- RESULT -->
+  <section class="section" id="sec-result">
+    <div id="resultArea">
+      <div class="card"><p class="empty">Нажмите «Рассчитать план», чтобы увидеть результат.</p></div>
+    </div>
+  </section>
+
+  <!-- CALENDAR & EXPORT -->
+  <section class="section" id="sec-calendar">
+    <div id="calendarArea"></div>
+  </section>
+
+</div>
+
+<!-- Modal -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal" id="modal"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   WeekPlan — помощник работающего студента.
+   Все данные хранятся в localStorage. Серверной части нет.
+   ============================================================ */
+
+const LS_KEY = 'studentPlanner.v2';
+const LEGACY_KEY = 'studentPlanner.v1';
+
+/* ---------- Состояние ---------- */
+let state = {
+  version: 2,
+  weekStart: '', weekEnd: '', buffer: 15,
+  fixed: [],   // {id,title,date,start,end,type,link,recurrence?,origin?}
+  free: [],    // {id,date,start,end}
+  tasks: [],   // {id,title,deadline,duration,priority,link,allowSplit,status,remaining,pinned?}
+  plan: null,  // результат последнего расчёта
+  // Новое:
+  uni: {
+    group: '15.14Д-ГГ02/23б',
+    lastUpdated: null,        // ISO
+    schedule: [],             // [{id,date,start,end,title,teacher,room,type,link,note,status:'normal'|'cancelled'|'moved',movedTo?}]
+    schemaVersion: 0,         // инкремент демо-источника для имитации изменений
+    weekOffset: 0             // смещение недели в просмотре расписания вуза
+  },
+  templates: [],              // {id,name,fixed:[],free:[],createdAt}
+  recurringDefs: [],          // {id,title,start,end,type,link,weekdays:[],dateStart,dateEnd}
+  materials: {
+    stats: { attempts: [], best: {} }   // попытки тестов
+  },
+  calendar: {
+    syncInterval: '1h',
+    connected: false
+  }
+};
+
+/* ---------- Утилиты времени ---------- */
+function pad(n){return String(n).padStart(2,'0');}
+function todayISO(){const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function nowISO(){return new Date().toISOString();}
+function addDaysISO(iso,n){const d=new Date(iso+'T00:00:00');d.setDate(d.getDate()+n);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function mkDateTime(date,time){return new Date(date+'T'+time+':00');}
+function fmtMin(m){m=Math.max(0,Math.round(m));if(m<60)return m+' мин';const h=Math.floor(m/60),mm=m%60;return h+' ч'+(mm?(' '+pad(mm)+' мин'):'');}
+function fmtDateTime(dt){return dt.toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}
+function fmtTimeOnly(dt){return dt.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});}
+function fmtRange(a,b){const sa=a.toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});const eb=b.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});const ad=a.toDateString(),bd=b.toDateString();return ad===bd?(sa+'–'+eb):(sa+'–'+b.toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}));}
+function fmtDateRu(iso){const d=new Date(iso+'T00:00:00');return d.toLocaleDateString('ru-RU',{weekday:'short',day:'2-digit',month:'2-digit'});}
+function fmtFullDateRu(iso){const d=new Date(iso+'T00:00:00');return d.toLocaleDateString('ru-RU',{weekday:'long',day:'2-digit',month:'long'});}
+const WEEKDAYS=['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'];
+const WEEKDAYS_SHORT=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+function dayNameISO(iso){const d=new Date(iso+'T00:00:00');let w=d.getDay();w=w===0?6:w-1;return WEEKDAYS[w];}
+function weekIdxISO(iso){const d=new Date(iso+'T00:00:00');let w=d.getDay();w=w===0?6:w-1;return w;}
+function mondayOfISO(iso){return addDaysISO(iso,-weekIdxISO(iso));}
+function fmtMs(ms){return fmtMin(ms/60000);}
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function val(id){const el=document.getElementById(id);return el?el.value:'';}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+
+/* ---------- localStorage + миграция v1->v2 ---------- */
+function save(){
+  try{localStorage.setItem(LS_KEY,JSON.stringify(state));}catch(e){console.warn('save failed',e);}
+}
+function load(){
+  try{
+    const raw=localStorage.getItem(LS_KEY);
+    if(raw){
+      const obj=JSON.parse(raw);
+      migrate(obj);
+      Object.assign(state,obj);
+      return;
+    }
+    // миграция из v1
+    const legacy=localStorage.getItem(LEGACY_KEY);
+    if(legacy){
+      const old=JSON.parse(legacy);
+      const migrated={
+        version:2,
+        weekStart:old.weekStart||'',weekEnd:old.weekEnd||'',buffer:old.buffer!=null?old.buffer:15,
+        fixed:(old.fixed||[]).map(f=>({...f,origin:'manual'})),
+        free:old.free||[],
+        tasks:(old.tasks||[]).map(t=>({...t,allowSplit:false,status:'planned',remaining:t.duration})),
+        plan:old.plan||null,
+        uni:state.uni,templates:[],recurringDefs:[],
+        materials:{stats:{attempts:[],best:{}}},calendar:state.calendar
+      };
+      Object.assign(state,migrated);
+      save();
+      toast('Данные перенесены из старой версии','ok');
+      return;
+    }
+  }catch(e){console.warn('load failed',e);}
+}
+function migrate(obj){
+  // Гарантируем наличие всех новых полей у старых объектов.
+  obj.version=2;
+  if(!obj.uni)obj.uni={group:'15.14Д-ГГ02/23б',lastUpdated:null,schedule:[],schemaVersion:0,weekOffset:0};
+  obj.uni=Object.assign({group:'15.14Д-ГГ02/23б',lastUpdated:null,schedule:[],schemaVersion:0,weekOffset:0},obj.uni);
+  if(!obj.templates)obj.templates=[];
+  if(!obj.recurringDefs)obj.recurringDefs=[];
+  if(!obj.materials)obj.materials={stats:{attempts:[],best:{}}};
+  if(!obj.materials.stats)obj.materials.stats={attempts:[],best:{}};
+  if(!obj.calendar)obj.calendar={syncInterval:'1h',connected:false};
+  (obj.fixed||[]).forEach(f=>{if(!f.origin)f.origin='manual';});
+  (obj.tasks||[]).forEach(t=>{
+    if(t.allowSplit===undefined)t.allowSplit=false;
+    if(!t.status)t.status='planned';
+    if(t.remaining===undefined)t.remaining=t.duration;
+  });
+}
+
+/* ---------- Тосты ---------- */
+let toastTimer=null;
+function toast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast show'+(type?(' '+type):'');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{t.className='toast';},2800);
+}
+
+/* ---------- Вкладки ---------- */
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
+  document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active',s.id==='sec-'+name));
+  if(name==='uni')renderUni();
+  if(name==='materials')renderMaterials();
+  if(name==='calendar')renderCalendar();
+  if(name==='result')renderResult();
+  if(name==='fixed')renderFixedList();
+  if(name==='free')renderFreeList();
+  if(name==='tasks')renderTaskList();
+}
+
+/* ---------- Валидация (общие хелперы) ---------- */
+const ERR={};
+function isValidDateISO(s){return /^\d{4}-\d{2}-\d{2}$/.test(s)&&!isNaN(new Date(s+'T00:00:00').getTime());}
+function isValidTime(s){return /^([01]\d|2[0-3]):[0-5]\d$/.test(s);}
+function isValidDateTimeISO(s){return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)&&!isNaN(new Date(s+':00').getTime());}
+function empty(v){return v===null||v===undefined||String(v).trim()==='';}
+function inWeek(ds,de){
+  if(!state.weekStart||!state.weekEnd)return true;
+  const ws=new Date(state.weekStart+'T00:00:00'),we=new Date(state.weekEnd+'T23:59:59');
+  return ds.getTime()>=ws.getTime()&&de.getTime()<=we.getTime();
+}
+
+function validateWeekParams(p){
+  const e=[];
+  if(empty(p.weekStart))e.push('Укажите дату начала недели.');
+  if(empty(p.weekEnd))e.push('Укажите дату окончания недели.');
+  if(empty(p.buffer)&&p.buffer!==0)e.push('Укажите буфер между событиями.');
+  if(e.length)return e;
+  if(!isValidDateISO(p.weekStart))e.push('Дата начала недели некорректна.');
+  if(!isValidDateISO(p.weekEnd))e.push('Дата окончания недели некорректна.');
+  if(e.length)return e;
+  const bs=new Date(p.weekStart+'T00:00:00'),be=new Date(p.weekEnd+'T00:00:00');
+  if(be.getTime()<bs.getTime())e.push('Дата окончания недели раньше даты начала.');
+  const diffDays=(be.getTime()-bs.getTime())/86400000;
+  if(diffDays>30)e.push('Диапазон недели слишком большой (больше 30 дней).');
+  const buf=Number(p.buffer);
+  if(!Number.isFinite(buf)||buf<0)e.push('Буфер должен быть неотрицательным числом.');
+  return e;
+}
+
+function validateFixed(f){
+  const e=[];
+  if(empty(f.title))e.push('Укажите название события.');
+  if(empty(f.date))e.push('Укажите дату события.');
+  if(empty(f.start))e.push('Укажите время начала.');
+  if(empty(f.end))e.push('Укажите время окончания.');
+  if(e.length)return e;
+  if(!isValidDateISO(f.date))e.push('Дата события некорректна.');
+  if(!isValidTime(f.start))e.push('Время начала некорректно (ЧЧ:ММ).');
+  if(!isValidTime(f.end))e.push('Время окончания некорректно (ЧЧ:ММ).');
+  if(e.length)return e;
+  const ds=mkDateTime(f.date,f.start),de=mkDateTime(f.date,f.end);
+  if(de.getTime()<=ds.getTime())e.push('Время окончания должно быть позже времени начала.');
+  if(!inWeek(ds,de))e.push('Событие выходит за пределы выбранной недели.');
+  return e;
+}
+
+function validateFree(f){
+  const e=[];
+  if(empty(f.date))e.push('Укажите дату окна.');
+  if(empty(f.start))e.push('Укажите время начала окна.');
+  if(empty(f.end))e.push('Укажите время окончания окна.');
+  if(e.length)return e;
+  if(!isValidDateISO(f.date))e.push('Дата окна некорректна.');
+  if(!isValidTime(f.start))e.push('Время начала некорректно.');
+  if(!isValidTime(f.end))e.push('Время окончания некорректно.');
+  if(e.length)return e;
+  const ds=mkDateTime(f.date,f.start),de=mkDateTime(f.date,f.end);
+  if(de.getTime()<=ds.getTime())e.push('Окно окончания должно быть позже начала.');
+  if(!inWeek(ds,de))e.push('Окно выходит за пределы выбранной недели.');
+  return e;
+}
+
+function validateTask(t){
+  const e=[];
+  if(empty(t.title))e.push('Укажите название задачи.');
+  if(empty(t.deadline))e.push('Укажите дедлайн задачи.');
+  if(empty(t.duration)&&t.duration!==0)e.push('Укажите длительность задачи.');
+  if(e.length)return e;
+  if(!isValidDateTimeISO(t.deadline))e.push('Дедлайн некорректен (ГГГГ-ММ-ДДTЧЧ:ММ).');
+  const dur=Number(t.duration);
+  if(!Number.isFinite(dur)||dur<=0)e.push('Длительность должна быть положительным числом.');
+  if(t.priority&&!['low','mid','high'].includes(t.priority))e.push('Приоритет некорректен.');
+  if(t.status&&!['planned','progress','done','overdue'].includes(t.status))e.push('Статус некорректен.');
+  if(state.weekStart&&state.weekEnd){
+    const ws=new Date(state.weekStart+'T00:00:00');
+    const dl=new Date(t.deadline+':00');
+    if(dl.getTime()<ws.getTime())e.push('Дедлайн раньше начала недели (задачу нельзя разместить).');
+  }
+  return e;
+}
+
+/* ---------- Демонстрационное расписание вуза ----------
+   Встроенный «источник данных» — имитация расписания для группы.
+   schemaVersion 0 — базовое расписание; 1 — одна пара перенесена/отменена
+   (демонстрация изменения расписания при обновлении).
+   НЕ обращаемся к реальным API вуза — всё локальное, помечено как пример. */
+const UNI_DISCIPLINES = {
+  econ:'Экономика', mgmt:'Менеджмент', law:'Право', hist:'История',
+  gmu:'ГМУ', it:'Информационные технологии'
+};
+
+function uniLessonsBase(weekMondayISO){
+  // Возвращает массив занятий для недели, начинающейся с weekMondayISO.
+  // Расписание жёстко привязано к дням недели и времени.
+  const d=(n, obj)=>{const iso=addDaysISO(weekMondayISO,n);return {date:iso,...obj};};
+  const L=(dayIdx,start,end,title,type,teacher,room)=>d(dayIdx,{start,end,title,type,teacher,room});
+  return [
+    // Понедельник
+    L(0,'09:00','10:30','Макроэкономика','Лекция','доц. Петрова А.И.','А-301'),
+    L(0,'10:45','12:15','Математический анализ','Практика','ст. преп. Орлов В.С.','Б-210'),
+    L(0,'13:00','14:30','Правоведение','Семинар','к.ю.н. Зайцева Н.П.','Ю-104'),
+    // Вторник
+    L(1,'09:00','10:30','Информационные технологии','Лекция','инж. Ким Р.О.','IT-2'),
+    L(1,'10:45','12:15','Информационные технологии','Лабораторная','инж. Ким Р.О.','IT-2'),
+    L(1,'14:00','15:30','История России','Лекция','доц. Соколов М.В.','Г-15'),
+    // Среда
+    L(2,'09:00','10:30','Менеджмент','Лекция','проф. Громов Е.А.','А-105'),
+    L(2,'10:45','12:15','Экономика труда','Семинар','доц. Петрова А.И.','А-301'),
+    L(2,'13:00','14:30','Математический анализ','Лекция','ст. преп. Орлов В.С.','Б-210'),
+    // Четверг
+    L(3,'09:00','10:30','Государственное управление','Лекция','к.п.н. Лебедев И.Г.','Г-12'),
+    L(3,'10:45','12:15','Правоведение','Лекция','к.ю.н. Зайцева Н.П.','Ю-104'),
+    L(3,'14:00','15:30','Менеджмент','Семинар','проф. Громов Е.А.','А-105'),
+    // Пятница
+    L(4,'09:00','10:30','История России','Семинар','доц. Соколов М.В.','Г-15'),
+    L(4,'10:45','12:15','Экономика','Практикум','доц. Петрова А.И.','А-301'),
+    L(4,'13:00','14:30','Информационные технологии','Семинар','инж. Ким Р.О.','IT-2'),
+    // Суббота — короткий день
+    L(5,'09:00','10:30','Государственное управление','Семинар','к.п.н. Лебедев И.Г.','Г-12'),
+  ];
+}
+
+function buildUniSchedule(weekMondayISO, schemaVersion){
+  // Генерирует расписание с уникальными стабильными id (зависит от даты+времена+тема).
+  // При schemaVersion===1 имитируем изменение: отменяем одну пару в среду и переносим
+  // практикум по экономике в пятницу на 12:20.
+  let lessons=uniLessonsBase(weekMondayISO).map((l,i)=>{
+    const id='uni-'+l.date+'-'+l.start.replace(':','')+'-'+i;
+    return {id,date:l.date,start:l.start,end:l.end,title:l.title,type:l.type,
+            teacher:l.teacher,room:l.room,link:'',note:'',
+            status:'normal',discGroup:'base'};
+  });
+  if(schemaVersion>=1){
+    // Отменяем «Экономика труда» в среду 10:45
+    lessons=lessons.map(l=>{
+      if(l.date===addDaysISO(weekMondayISO,2)&&l.start==='10:45'&&l.title==='Экономика труда'){
+        return {...l,status:'cancelled',note:'Занятие отменено преподавателем'};
+      }
+      return l;
+    });
+    // Переносим «Экономика» практикум (пт 10:45) на 12:20 в ту же пятницу
+    lessons=lessons.map(l=>{
+      if(l.date===addDaysISO(weekMondayISO,4)&&l.start==='10:45'&&l.title==='Экономика'){
+        return {...l,start:'12:20',end:'13:50',status:'moved',
+                note:'Практикум перенесён с 10:45 на 12:20'};
+      }
+      return l;
+    });
+  }
+  return lessons;
+}
+
+/* Получить расписание для текущей выбранной недели пользователя.
+   weekOffset задаёт смещение для просмотра в разделе «Расписание вуза». */
+function currentUniMonday(){
+  const base = state.weekStart ? mondayOfISO(state.weekStart) : mondayOfISO(todayISO());
+  return addDaysISO(base, state.uni.weekOffset*7);
+}
+
+/* Загрузить/обновить демонстрационное расписание в state.
+   preserveSchema — не увеличивать версию (просто перечитать).
+   Возвращает {added,changed} для отчёта. */
+function refreshUniSchedule(opts={}){
+  const monday = currentUniMonday();
+  const targetSchema = opts.bumpSchema ? state.uni.schemaVersion+1 : state.uni.schemaVersion;
+  const fresh = buildUniSchedule(monday, targetSchema);
+  // Сравнение с существующим — чтобы не плодить дубликаты и зафиксировать изменения.
+  const prev = state.uni.schedule || [];
+  const prevMap={}; prev.forEach(l=>prevMap[l.id]=l);
+  let changed=[];
+  fresh.forEach(l=>{
+    const old=prevMap[l.id];
+    if(!old){changed.push({id:l.id,kind:'added',title:l.title});}
+    else if(old.status!==l.status||old.start!==l.start||old.end!==l.end){
+      changed.push({id:l.id,kind:'changed',title:l.title,from:old.start,to:l.start});
+    }
+  });
+  // Удаляем пары, которых больше нет в источнике (например, при смене недели просмотра —
+  // но это лишь кэш; реальные личные события не трогаем).
+  state.uni.schedule = fresh;
+  state.uni.schemaVersion = targetSchema;
+  state.uni.lastUpdated = nowISO();
+  // Удаляем из fixed все автоматически загруженные пары вуза для этой недели,
+  // затем добавляем актуальные. Личные события (origin==='manual') сохраняем.
+  state.fixed = state.fixed.filter(f=>!(f.origin==='uni' && f.date>=monday && f.date<=addDaysISO(monday,6)));
+  fresh.filter(l=>l.status!=='cancelled').forEach(l=>{
+    state.fixed.push({
+      id:l.id, title:'Пара: '+l.title, date:l.date, start:l.start, end:l.end,
+      type:'study', link:l.link||'', origin:'uni',
+      teacher:l.teacher, room:l.room, note:l.note, uniStatus:l.status
+    });
+  });
+  save();
+  return {changed, count:fresh.length};
+}
+
+/* ---------- Алгоритм планирования ----------
+   Расширен: дробление задач, учёт закреплённых сессий, пропуск выполненных,
+   учёт университета как фиксированных событий, остаток незапланированного времени. */
+function overlaps(aStart,aEnd,bStart,bEnd){return aStart.getTime()<bEnd.getTime()&&bStart.getTime()<aEnd.getTime();}
+function priorityRank(p){return p==='high'?3:p==='mid'?2:1;}
+
+const MIN_SESSION_MIN = 30; // минимальная продолжительность сессии при дроблении
+
+/* Авто-статус «просрочено» для задач, дедлайн которых прошёл и они не выполнены. */
+function syncTaskStatuses(){
+  const now=Date.now();
+  let changed=false;
+  state.tasks.forEach(t=>{
+    if(t.status==='done')return;
+    const dl=new Date(t.deadline+':00').getTime();
+    if(dl<now && t.status!=='overdue'){t.status='overdue';changed=true;}
+    else if(dl>=now && t.status==='overdue'){t.status='planned';changed=true;}
+  });
+  if(changed)save();
+}
+
+/* Сбор всех фиксированных занятых отрезков (fixed события + закреплённые сессии
+   из предыдущего плана). Возвращает массив {s,e,ref,kind}. */
+function collectBusy(fixedEv){
+  const busy=[];
+  fixedEv.forEach(f=>{
+    const s=new Date(f._s.getTime()-state.buffer*60000);
+    const e=new Date(f._e.getTime()+state.buffer*60000);
+    busy.push({s,e,ref:f,kind:'fixed'});
+  });
+  // Закреплённые задачи из предыдущего плана — занятый интервал.
+  (state.plan&&state.plan.placed||[]).forEach(pl=>{
+    if(pl.pinned){
+      const s=new Date(new Date(pl.s).getTime()-state.buffer*60000);
+      const e=new Date(new Date(pl.e).getTime()+state.buffer*60000);
+      busy.push({s,e,ref:pl,kind:'pinned'});
+    }
+  });
+  return busy;
+}
+
+/* Разбить свободные окна минус занятые отрезки на учебные интервалы. */
+function computeStudyIntervals(freeWin, busy){
+  let studyIntervals=[];
+  freeWin.forEach(fw=>{
+    let pieces=[{s:new Date(fw.s),e:new Date(fw.e)}];
+    busy.forEach(b=>{
+      const next=[];
+      pieces.forEach(p=>{
+        if(overlaps(p.s,p.e,b.s,b.e)){
+          if(p.s.getTime()<b.s.getTime())next.push({s:p.s,e:new Date(Math.min(p.e.getTime(),b.s.getTime()))});
+          if(b.e.getTime()<p.e.getTime())next.push({s:new Date(Math.max(p.s.getTime(),b.e.getTime())),e:p.e});
+        }else next.push(p);
+      });
+      pieces=next;
+    });
+    studyIntervals=studyIntervals.concat(pieces);
+  });
+  studyIntervals=studyIntervals.filter(i=>i.e.getTime()-i.s.getTime()>0);
+  studyIntervals.sort((a,b)=>a.s-b.s);
+  return studyIntervals;
+}
+
+function buildPlan(){
+  syncTaskStatuses();
+  // 1. Фиксированные события (включая пары вуза origin==='uni')
+  const conflicts=[];
+  const fixedEv=state.fixed.map(f=>({...f,_s:mkDateTime(f.date,f.start),_e:mkDateTime(f.date,f.end)}))
+    .sort((a,b)=>a._s-b._s);
+  for(let i=0;i<fixedEv.length;i++){
+    for(let j=i+1;j<fixedEv.length;j++){
+      if(overlaps(fixedEv[i]._s,fixedEv[i]._e,fixedEv[j]._s,fixedEv[j]._e)){
+        conflicts.push({type:'fixed_overlap',a:fixedEv[i],b:fixedEv[j]});
+      }
+    }
+  }
+  // 2. Буфер-конфликты
+  for(let i=0;i<fixedEv.length;i++){
+    for(let j=i+1;j<fixedEv.length;j++){
+      const A=fixedEv[i],B=fixedEv[j];
+      if(A.date===B.date && B._s.getTime()>=A._s.getTime()){
+        const gap=(B._s.getTime()-A._e.getTime())/60000;
+        if(gap>=0 && gap<state.buffer)conflicts.push({type:'buffer_conflict',a:A,b:B,gap});
+      }
+    }
+  }
+
+  // 3. Занятые отрезки и учебные интервалы
+  const busy=collectBusy(fixedEv);
+  const freeWin=state.free.map(f=>({s:mkDateTime(f.date,f.start),e:mkDateTime(f.date,f.end)}))
+    .sort((a,b)=>a.s-b.s);
+  let studyIntervals=computeStudyIntervals(freeWin,busy);
+
+  // 4. Сортировка задач. Пропускаем выполненные. Учитываем remaining.
+  const tasksSorted=state.tasks
+    .filter(t=>t.status!=='done')
+    .map(t=>({...t,_dl:new Date(t.deadline+':00'),_rank:priorityRank(t.priority),
+               _rem:(t.remaining!=null?t.remaining:t.duration)}))
+    .sort((a,b)=>{
+      if(a._dl.getTime()!==b._dl.getTime())return a._dl-b._dl;
+      if(a._rank!==b._rank)return b._rank-a._rank;
+      return Number(b.duration)-Number(a.duration);
+    });
+
+  // 5. Рабочая копия интервалов
+  let intervals=studyIntervals.map(i=>({s:new Date(i.s),e:new Date(i.e)}));
+  const placed=[]; // {task, s, e, pinned, partial}
+  const unplaced=[];
+  const prevPinned={};
+  (state.plan&&state.plan.placed||[]).forEach(pl=>{
+    if(pl.pinned)prevPinned[pl.task.id]={s:new Date(pl.s),e:new Date(pl.e)};
+  });
+
+  tasksSorted.forEach(t=>{
+    // Закреплённая задача: ставим как есть (уже учтена в busy).
+    if(prevPinned[t.id]){
+      const pp=prevPinned[t.id];
+      placed.push({task:t,s:new Date(pp.s),e:new Date(pp.e),pinned:true,partial:false,sessions:[{s:new Date(pp.s),e:new Date(pp.e)}]});
+      return;
+    }
+    const remMs=t._rem*60000;
+    if(t.allowSplit){
+      // Дробление: набираем сессии по ≥30 мин, до дедлайна, с учётом буфера.
+      let remaining=remMs;
+      const sessions=[];
+      let iv=intervals.map(i=>({s:new Date(i.s),e:new Date(i.e)}));
+      while(remaining>0){
+        let chosenIdx=-1,chosenStart=null,chosenEnd=null;
+        for(let i=0;i<iv.length;i++){
+          const seg=iv[i];
+          if(seg.e.getTime()>t._dl.getTime())break;
+          const avail=seg.e.getTime()-seg.s.getTime();
+          if(avail<MIN_SESSION_MIN*60000)continue;
+          const take=Math.min(remaining,avail);
+          if(take<MIN_SESSION_MIN*60000 && remaining>=MIN_SESSION_MIN*60000){
+            // не берём слишком короткий хвостик, если можно ещё набрать
+            continue;
+          }
+          chosenIdx=i;chosenStart=new Date(seg.s);
+          chosenEnd=new Date(seg.s.getTime()+take);
+          break;
+        }
+        if(chosenIdx<0)break;
+        sessions.push({s:new Date(chosenStart),e:new Date(chosenEnd)});
+        remaining-=chosenEnd.getTime()-chosenStart.getTime();
+        // Вырезать занятый кусок + буфер после
+        const seg=iv[chosenIdx];
+        const afterBufferEnd=new Date(chosenEnd.getTime()+state.buffer*60000);
+        if(afterBufferEnd.getTime()<seg.e.getTime()){
+          iv[chosenIdx]={s:new Date(afterBufferEnd),e:new Date(seg.e)};
+        }else{
+          iv.splice(chosenIdx,1);
+        }
+        iv.sort((a,b)=>a.s-b.s);
+        if(remaining<MIN_SESSION_MIN*60000 && remaining>0)break; // остаток меньше мин. сессии
+      }
+      // Пишем обратно в общие интервалы
+      intervals=iv;
+      if(sessions.length){
+        const totalPlaced=sessions.reduce((s,x)=>s+(x.e.getTime()-x.s.getTime()),0);
+        const partial=totalPlaced<remMs;
+        placed.push({task:t,s:new Date(sessions[0].s),e:new Date(sessions[sessions.length-1].e),
+                     pinned:false,partial,sessions});
+        if(partial){
+          const leftover=remMs-totalPlaced;
+          unplaced.push({task:t,reason:'Удалось разместить только '+fmtMin(totalPlaced/60000)+
+            ' из '+fmtMin(remMs/60000)+'. Остаток '+fmtMin(leftover/60000)+
+            ' не поместился: свободные окна до дедлайна слишком короткие (нужно ≥ '+MIN_SESSION_MIN+' мин на сессию).',
+            partial:true,placedMs:totalPlaced,leftoverMs:leftover});
+        }
+      }else{
+        unplaced.push({task:t,reason:unplacedReason(intervals,t,remMs)});
+      }
+    }else{
+      // Целиком
+      let chosen=null;
+      for(let i=0;i<intervals.length;i++){
+        const iv=intervals[i];
+        const start=iv.s;
+        const end=new Date(start.getTime()+remMs);
+        if(end.getTime()<=iv.e.getTime() && end.getTime()<=t._dl.getTime()){
+          chosen={intervalIndex:i,s:new Date(start),e:new Date(end)};
+          break;
+        }
+      }
+      if(chosen){
+        placed.push({task:t,s:chosen.s,e:chosen.e,pinned:false,partial:false,sessions:[{s:new Date(chosen.s),e:new Date(chosen.e)}]});
+        const iv=intervals[chosen.intervalIndex];
+        const afterBufferEnd=new Date(chosen.e.getTime()+state.buffer*60000);
+        if(afterBufferEnd.getTime()<iv.e.getTime()){
+          intervals[chosen.intervalIndex]={s:new Date(afterBufferEnd),e:new Date(iv.e)};
+        }else{
+          intervals.splice(chosen.intervalIndex,1);
+        }
+      }else{
+        unplaced.push({task:t,reason:unplacedReason(intervals,t,remMs)});
+      }
+    }
+  });
+
+  const totalFreeMs=studyIntervals.reduce((s,i)=>s+(i.e.getTime()-i.s.getTime()),0);
+  const plannedMs=placed.reduce((s,p)=>s+(p.sessions.reduce((a,x)=>a+(x.e.getTime()-x.s.getTime()),0)),0);
+  const nearestDeadlines=[...tasksSorted].sort((a,b)=>a._dl-b._dl).slice(0,5);
+
+  const plan={
+    conflicts,fixedEv,studyIntervals,placed,unplaced,
+    summary:{
+      totalTasks:state.tasks.length,
+      placedCount:placed.filter(p=>!p.partial).length,
+      partialCount:placed.filter(p=>p.partial).length,
+      unplacedCount:unplaced.length,
+      totalFreeHours:totalFreeMs/3600000,
+      plannedHours:plannedMs/3600000,
+      nearestDeadlines
+    },
+    generatedAt:nowISO()
+  };
+  return plan;
+}
+
+function unplacedReason(intervals,t,durMs){
+  let reason='Не найдено подходящего непрерывного окна до дедлайна.';
+  const totalFree=intervals.reduce((s,i)=>s+(i.e.getTime()-i.s.getTime()),0);
+  const beforeDeadline=intervals.filter(i=>i.e.getTime()<=t._dl.getTime()).reduce((s,i)=>s+(i.e.getTime()-i.s.getTime()),0);
+  if(totalFree<=0)reason='Нет доступных учебных окон после вычитания фиксированных событий, пар вуза и буфера.';
+  else if(beforeDeadline<=0)reason='Все свободные окна находятся позже дедлайна ('+fmtDateTime(new Date(t.deadline+':00'))+').';
+  else{
+    const maxCont=Math.max(0,...intervals.filter(i=>i.e.getTime()<=t._dl.getTime()).map(i=>i.e.getTime()-i.s.getTime()));
+    if(maxCont<durMs)reason='Ни одно свободное окно до дедлайна не вмещает '+fmtMin(durMs/60000)+' (макс. непрерывное окно: '+fmtMin(maxCont/60000)+'). Включите дробление задачи, чтобы распределить её по нескольким окнам.';
+  }
+  return reason;
+}
+
+/* ---------- Перепланирование недели ----------
+   Повторный расчёт с учётом выполненных/в процессе задач, оставшегося времени,
+   изменившегося расписания вуза, новых смен и окон. Показывает, что переместилось. */
+function replanWeek(){
+  syncTaskStatuses();
+  // Проверим просроченные задачи — если дедлайн прошёл и не выполнено, предложим изменить дедлайн.
+  const overdueTasks=state.tasks.filter(t=>t.status==='overdue');
+  if(overdueTasks.length){
+    const names=overdueTasks.map(t=>'«'+t.title+'»').join(', ');
+    if(!confirm('Есть просроченные задачи: '+names+'. Их нельзя планировать в будущем до изменения дедлайна. Продолжить перепланирование остальных задач?'))return;
+  }
+  // Сбросим remaining у невыполненных задач к исходной длительности (но не у «в процессе» —
+  // там remaining мог быть уменьшен вручную).
+  state.tasks.forEach(t=>{
+    if(t.status==='planned'){t.remaining=t.duration;}
+  });
+  // Запомним предыдущее размещение для diff
+  const prevMap={};
+  (state.plan&&state.plan.placed||[]).forEach(pl=>{
+    if(!pl.pinned)prevMap[pl.task.id]={s:pl.s,e:pl.e};
+  });
+  state.plan=buildPlan();
+  // Подсчёт перемещений
+  const diff=[];
+  state.plan.placed.forEach(pl=>{
+    if(pl.pinned)return;
+    const prev=prevMap[pl.task.id];
+    const newStart=(pl.s instanceof Date?pl.s:new Date(pl.s)).toISOString();
+    if(!prev){
+      diff.push({task:pl.task.title,kind:'added',text:'Добавлена в план: '+fmtDateTime(pl.s)});
+    }else{
+      const prevStart=(prev.s instanceof Date?prev.s:new Date(prev.s)).toISOString();
+      if(prevStart!==newStart){
+        diff.push({task:pl.task.title,kind:'moved',
+          text:'Перенесена: '+fmtDateTime(prev.s)+' → '+fmtDateTime(pl.s)});
+      }
+    }
+  });
+  // Удалённые из плана (были раньше, теперь нет)
+  Object.keys(prevMap).forEach(tid=>{
+    if(!state.plan.placed.find(pl=>pl.task.id===tid)){
+      const t=state.tasks.find(x=>x.id===tid);
+      if(t)diff.push({task:t.title,kind:'removed',text:'Убрана из плана (выполнена, просрочена или не уместилась).'});
+    }
+  });
+  state.plan.replanDiff=diff;
+  save();
+  renderResult();
+  renderTaskList();
+  switchTab('result');
+  toast('Неделя перепланирована. Изменений: '+diff.length,'ok');
+}
+
+/* ---------- Ручная корректировка плана ----------
+   Закрепление/открепление задачи, перенос на конкретное время, изменение порядка. */
+function pinTask(taskId){
+  const pl=(state.plan&&state.plan.placed||[]).find(p=>p.task.id===taskId);
+  if(!pl){toast('Сначала рассчитайте план','err');return;}
+  pl.pinned=!pl.pinned;
+  save();
+  renderResult();
+  toast(pl.pinned?'Задача закреплена — не будет перемещаться при пересчёте':'Закрепление снято','ok');
+}
+
+function moveTaskTime(taskId){
+  const pl=(state.plan&&state.plan.placed||[]).find(p=>p.task.id===taskId);
+  const task=state.tasks.find(t=>t.id===taskId);
+  if(!task){toast('Задача не найдена','err');return;}
+  const curStart=pl?pl.s:new Date();
+  const cs=(pl&&pl.s instanceof Date)?pl.s:new Date(pl?pl.s:curStart);
+  const defDate=cs.toISOString().slice(0,10);
+  const defTime=cs.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+  openModal(
+    '<button class="close" onclick="closeModal()">×</button>'+
+    '<h3>Назначить время вручную</h3>'+
+    '<p class="small">Закрепить задачу за конкретной датой и временем. Перед сохранением проверяются пересечения, свободный интервал, буфер и дедлайн.</p>'+
+    '<div class="field"><label>Задача</label><div style="font-weight:600;font-size:14px">'+escapeHtml(task.title)+'</div></div>'+
+    '<div class="row"><div class="field"><label>Дата</label><input type="date" id="mvDate" value="'+defDate+'"></div>'+
+    '<div class="field"><label>Начало</label><input type="time" id="mvStart" value="'+defTime+'"></div></div>'+
+    '<div class="field"><label>Длительность сессии, мин</label><input type="number" id="mvDur" min="30" step="5" value="'+task.duration+'"></div>'+
+    '<div id="mvErr" class="err-msg"></div>'+
+    '<button class="btn btn-primary" id="mvSave">Закрепить за этим временем</button>'
+  );
+  document.getElementById('mvSave').onclick=()=>{
+    const date=val('mvDate'),start=val('mvStart'),dur=Number(val('mvDur'));
+    const e1=[];
+    if(!isValidDateISO(date))e1.push('Дата некорректна.');
+    if(!isValidTime(start))e1.push('Время начала некорректно.');
+    if(!Number.isFinite(dur)||dur<30)e1.push('Длительность ≥ 30 мин.');
+    if(e1.length){document.getElementById('mvErr').textContent=e1[0];return;}
+    const s=mkDateTime(date,start);
+    const e=new Date(s.getTime()+dur*60000);
+    const dl=new Date(task.deadline+':00');
+    if(e.getTime()>dl.getTime()){document.getElementById('mvErr').textContent='Сессия заканчивается после дедлайна ('+fmtDateTime(dl)+').';return;}
+    if(!inWeek(s,e)){document.getElementById('mvErr').textContent='Время выходит за пределы выбранной недели.';return;}
+    // Проверка пересечений с фиксированными событиями (кроме самого себя)
+    const fixedEv=state.fixed.map(f=>({...f,_s:mkDateTime(f.date,f.start),_e:mkDateTime(f.date,f.end)}));
+    for(const f of fixedEv){
+      const fs=new Date(f._s.getTime()-state.buffer*60000);
+      const fe=new Date(f._e.getTime()+state.buffer*60000);
+      if(overlaps(s,e,fs,fe)){
+        document.getElementById('mvErr').textContent='Пересечение с событием «'+f.title+'» ('+fmtRange(f._s,f._e)+') или нарушен буфер.';
+        return;
+      }
+    }
+    // Проверка наличия свободного окна, накрывающего сессию
+    const freeWin=state.free.map(f=>({s:mkDateTime(f.date,f.start),e:mkDateTime(f.date,f.end)}));
+    const covered=freeWin.some(fw=>s.getTime()>=fw.s.getTime()&&e.getTime()<=fw.e.getTime());
+    if(!covered){document.getElementById('mvErr').textContent='В это время нет свободного учебного окна. Добавьте окно во вкладке «Доступное время».';return;}
+    // Проверка пересечений с другими закреплёнными задачами
+    const otherPinned=(state.plan&&state.plan.placed||[]).filter(p=>p.pinned&&p.task.id!==task.id);
+    for(const op of otherPinned){
+      const os=new Date(op.s instanceof Date?op.s:new Date(op.s)).getTime()-state.buffer*60000;
+      const oe=new Date(op.e instanceof Date?op.e:new Date(op.e)).getTime()+state.buffer*60000;
+      if(overlaps(s,e,new Date(os),new Date(oe))){
+        document.getElementById('mvErr').textContent='Пересечение с другой закреплённой задачей «'+op.task.title+'».';
+        return;
+      }
+    }
+    // Применяем: обновляем/добавляем placed с pinned=true
+    if(!state.plan)state.plan=buildPlan();
+    const idx=state.plan.placed.findIndex(p=>p.task.id===task.id);
+    const newPl={task:{...task,_dl:dl},s:new Date(s),e:new Date(e),pinned:true,partial:false,
+                 sessions:[{s:new Date(s),e:new Date(e)}]};
+    if(idx>=0)state.plan.placed[idx]=newPl; else state.plan.placed.push(newPl);
+    save();
+    renderResult();renderTaskList();
+    closeModal();
+    toast('Задача закреплена за '+fmtDateTime(s),'ok');
+  };
+}
+
+function moveTaskOrder(taskId,dir){
+  // Изменение порядка задач: «поднять выше» / «опустить ниже» —
+  // реализуем через приоритет сортировки (временный boost).
+  const idx=state.tasks.findIndex(t=>t.id===taskId);
+  if(idx<0)return;
+  const swap=dir==='up'?idx-1:idx+1;
+  if(swap<0||swap>=state.tasks.length)return;
+  const a=state.tasks[idx],b=state.tasks[swap];
+  state.tasks[idx]=b;state.tasks[swap]=a;
+  // Помечаем ручной порядок через поле order
+  state.tasks.forEach((t,i)=>t.order=i);
+  save();renderTaskList();
+  toast('Порядок задач изменён','ok');
+}
+
+/* ---------- Повторяющиеся события, шаблоны, копирование недели ---------- */
+function createRecurring(){
+  const def={title:'',type:'work',start:'09:00',end:'17:00',weekdays:[],dateStart:state.weekStart||todayISO(),dateEnd:state.weekEnd||addDaysISO(todayISO(),7)};
+  openModal(
+    '<button class="close" onclick="closeModal()">×</button>'+
+    '<h3>Повторяющееся событие</h3>'+
+    '<p class="small">Система сама создаст отдельные события на выбранные дни недели в указанном периоде.</p>'+
+    '<div class="field"><label>Название *</label><input id="rTitle" placeholder="Напр.: Рабочая смена"></div>'+
+    '<div class="row"><div class="field"><label>Начало *</label><input type="time" id="rStart" value="09:00"></div>'+
+    '<div class="field"><label>Окончание *</label><input type="time" id="rEnd" value="17:00"></div></div>'+
+    '<div class="field"><label>Тип</label><select id="rType">'+typeOptions('work')+'</select></div>'+
+    '<div class="field"><label>Дни недели *</label><div class="checkbox-row" id="rDays">'+
+      WEEKDAYS_SHORT.map((d,i)=>'<label><input type="checkbox" value="'+i+'" class="rDay"> '+d+'</label>').join('')+
+    '</div></div>'+
+    '<div class="row"><div class="field"><label>Дата начала *</label><input type="date" id="rDateStart" value="'+def.dateStart+'"></div>'+
+    '<div class="field"><label>Дата окончания *</label><input type="date" id="rDateEnd" value="'+def.dateEnd+'"></div></div>'+
+    '<div id="rErr" class="err-msg"></div>'+
+    '<button class="btn btn-primary" id="rSave">Создать повторения</button>'
+  );
+  document.getElementById('rSave').onclick=()=>{
+    const title=val('rTitle').trim();
+    const start=val('rStart'),end=val('rEnd'),type=val('rType');
+    const ds=val('rDateStart'),de=val('rDateEnd');
+    const days=[...document.querySelectorAll('.rDay:checked')].map(c=>Number(c.value));
+    const e2=[];
+    if(!title)e2.push('Укажите название.');
+    if(!isValidTime(start)||!isValidTime(end))e2.push('Время некорректно.');
+    if(mkDateTime(ds,start)>=mkDateTime(ds,end))e2.push('Окончание должно быть позже начала.');
+    if(!days.length)e2.push('Выберите хотя бы один день недели.');
+    if(!isValidDateISO(ds)||!isValidDateISO(de))e2.push('Даты периода некорректны.');
+    if(new Date(de+'T00:00:00')<new Date(ds+'T00:00:00'))e2.push('Дата окончания раньше начала.');
+    if(e2.length){document.getElementById('rErr').textContent=e2[0];return;}
+    // Сгенерировать события
+    let created=0;
+    let cur=ds;
+    while(cur<=de){
+      const wd=weekIdxISO(cur);
+      if(days.includes(wd)){
+        const f={id:uid(),title,date:cur,start,end,type,link:'',origin:'manual',recurrence:true};
+        const errs=validateFixed(f);
+        if(!errs.length){state.fixed.push(f);created++;}
+      }
+      cur=addDaysISO(cur,1);
+    }
+    // Сохранить определение повторения
+    state.recurringDefs.push({id:uid(),title,start,end,type,weekdays:days,dateStart:ds,dateEnd:de});
+    save();renderFixedList();closeModal();
+    toast('Создано событий: '+created,'ok');
+  };
+}
+
+function typeOptions(cur){return ['work','study','personal','other'].map(t=>'<option value="'+t+'"'+(t===cur?' selected':'')+'>'+({work:'Работа',study:'Учёба',personal:'Личное',other:'Другое'}[t])+'</option>').join('');}
+
+/* Шаблоны: сохранить текущие фиксированные (только manual) + свободные окна как шаблон. */
+function saveTemplate(){
+  const fixedManual=state.fixed.filter(f=>f.origin==='manual').map(({id,...rest})=>rest);
+  const freeTpl=state.free.map(({id,...rest})=>rest);
+  if(!fixedManual.length&&!freeTpl.length){toast('Нет данных для шаблона (события и окна пусты)','err');return;}
+  openModal(
+    '<button class="close" onclick="closeModal()">×</button>'+
+    '<h3>Сохранить шаблон</h3>'+
+    '<p class="small">Шаблон запоминает ваши личные события и свободные окна (без пар вуза). Применить можно к любой неделе.</p>'+
+    '<div class="field"><label>Название *</label><input id="tplName" placeholder="Напр.: Обычная рабочая неделя"></div>'+
+    '<div id="tplErr" class="err-msg"></div>'+
+    '<button class="btn btn-primary" id="tplSave">Сохранить</button>'
+  );
+  document.getElementById('tplSave').onclick=()=>{
+    const name=val('tplName').trim();
+    if(!name){document.getElementById('tplErr').textContent='Укажите название.';return;}
+    state.templates.push({id:uid(),name,fixed:fixedManual,free:freeTpl,createdAt:nowISO()});
+    save();renderTemplateList();closeModal();
+    toast('Шаблон «'+name+'» сохранён','ok');
+  };
+}
+function applyTemplate(){
+  if(!state.templates.length){toast('Нет сохранённых шаблонов','err');return;}
+  if(!state.weekStart){toast('Сначала задайте неделю','err');return;}
+  openModal(
+    '<button class="close" onclick="closeModal()">×</button>'+
+    '<h3>Применить шаблон</h3>'+
+    '<p class="small">События и окна шаблона будут добавлены к текущей неделе (с новыми id). Существующие не удаляются. Пары вуза не затрагиваются.</p>'+
+    state.templates.map(t=>'<div class="item"><div class="row-info"><div><div class="title">'+escapeHtml(t.name)+'</div>'+
+      '<div class="meta">'+t.fixed.length+' событий · '+t.free.length+' окон</div></div>'+
+      '<button class="mini primary" data-apply-tpl="'+t.id+'">Применить</button></div></div>').join('')+
+    '<div style="height:8px"></div><button class="btn btn-ghost" onclick="closeModal()">Закрыть</button>'
+  );
+  document.querySelectorAll('[data-apply-tpl]').forEach(b=>b.onclick=()=>{
+    const tpl=state.templates.find(x=>x.id===b.dataset.applyTpl);
+    if(!tpl)return;
+    tpl.fixed.forEach(f=>state.fixed.push({...f,id:uid(),origin:'manual'}));
+    tpl.free.forEach(f=>state.free.push({...f,id:uid()}));
+    save();renderFixedList();renderFreeList();closeModal();
+    toast('Шаблон «'+tpl.name+'» применён','ok');
+  });
+}
+function renderTemplateList(){
+  const box=document.getElementById('templateList');
+  if(!state.templates.length){box.innerHTML='<p class="empty">Нет сохранённых шаблонов.</p>';return;}
+  box.innerHTML=state.templates.map(t=>'<div class="item"><div class="row-info"><div><div class="title">'+escapeHtml(t.name)+'</div>'+
+    '<div class="meta">'+t.fixed.length+' событий · '+t.free.length+' окон</div></div>'+
+    '<button class="del" data-del-tpl="'+t.id+'" aria-label="Удалить">×</button></div></div>').join('');
+}
+
+/* Копирование предыдущей недели. */
+function copyPrevWeek(){
+  if(!state.weekStart){toast('Сначала задайте текущую неделю','err');return;}
+  const curStart=new Date(state.weekStart+'T00:00:00');
+  const prevStart=addDaysISO(state.weekStart,-7);
+  const prevEnd=addDaysISO(state.weekEnd,-7);
+  openModal(
+    '<button class="close" onclick="closeModal()">×</button>'+
+    '<h3>Скопировать предыдущую неделю</h3>'+
+    '<p class="small">Перенос из недели '+fmtDateRu(prevStart)+' — '+fmtDateRu(prevEnd)+' в текущую ('+fmtDateRu(state.weekStart)+' — '+fmtDateRu(state.weekEnd)+').</p>'+
+    '<div class="checkbox-row">'+
+      '<label><input type="checkbox" id="cpFixed" checked> Рабочие смены и личные мероприятия</label>'+
+      '<label><input type="checkbox" id="cpFree" checked> Свободные временные окна</label>'+
+      '<label><input type="checkbox" id="cpTpl"> Применить первый сохранённый шаблон</label>'+
+      '<label><input type="checkbox" id="cpTasks" checked> Незавершённые учебные задачи</label>'+
+    '</div>'+
+    '<p class="small">Пары вуза не копируются — они загружаются заново для новой недели. Выполненные задачи не переносятся.</p>'+
+    '<div id="cpErr" class="err-msg"></div>'+
+    '<button class="btn btn-primary" id="cpSave">Скопировать</button>'
+  );
+  document.getElementById('cpSave').onclick=()=>{
+    const cpFixed=document.getElementById('cpFixed').checked;
+    const cpFree=document.getElementById('cpFree').checked;
+    const cpTpl=document.getElementById('cpTpl').checked;
+    const cpTasks=document.getElementById('cpTasks').checked;
+    let count=0;
+    // События предыдущей недели (только manual, не uni, не дублируем)
+    if(cpFixed){
+      state.fixed.filter(f=>f.origin==='manual'&&f.date>=prevStart&&f.date<=prevEnd).forEach(f=>{
+        const newDate=addDaysISO(f.date,7);
+        if(newDate>=state.weekStart&&newDate<=state.weekEnd){
+          state.fixed.push({...f,id:uid(),date:newDate});
+          count++;
+        }
+      });
+    }
+    if(cpFree){
+      state.free.filter(f=>f.date>=prevStart&&f.date<=prevEnd).forEach(f=>{
+        state.free.push({...f,id:uid(),date:addDaysISO(f.date,7)});
+        count++;
+      });
+    }
+    if(cpTpl&&state.templates[0]){
+      state.templates[0].fixed.forEach(f=>state.fixed.push({...f,id:uid(),origin:'manual'}));
+      state.templates[0].free.forEach(f=>state.free.push({...f,id:uid()}));
+      count++;
+    }
+    if(cpTasks){
+      state.tasks.filter(t=>t.status!=='done').forEach(t=>{
+        // Дублируем задачу с дедлайном +7 дней, если он в пределах новой недели
+        const newDl=addDaysISO(t.deadline.slice(0,10),7)+t.deadline.slice(10);
+        state.tasks.push({...t,id:uid(),deadline:newDl,status:'planned',remaining:t.duration});
+        count++;
+      });
+    }
+    save();renderFixedList();renderFreeList();renderTaskList();closeModal();
+    toast('Скопировано элементов: '+count,'ok');
+  };
+}
+
+/* ---------- Рендеринг списков ---------- */
+function renderFixedList(){
+  const box=document.getElementById('fixedList');
+  if(!box)return;
+  const list=state.fixed.filter(f=>f.origin!=='uni');
+  if(!list.length){box.innerHTML='<p class="empty">Пока нет личных событий. Пары вуза загружаются во вкладке «Расписание вуза».</p>';return;}
+  box.innerHTML=list.map(f=>{
+    const cls=f.type==='work'?'b-work':f.type==='study'?'b-study':f.type==='personal'?'b-personal':'b-other';
+    const lbl=f.type==='work'?'Работа':f.type==='study'?'Учёба':f.type==='personal'?'Личное':'Другое';
+    const rec=f.recurrence?' <span class="badge b-other">повтор</span>':'';
+    const link=f.link?'<br><a href="'+escapeHtml(f.link)+'" target="_blank" rel="noopener" style="color:var(--primary);font-size:12px">ссылка ↗</a>':'';
+    return '<div class="item"><div class="row-info"><div><div class="title">'+escapeHtml(f.title)+'</div>'+
+      '<div class="meta">'+fmtDateRu(f.date)+' · '+f.start+'–'+f.end+' <span class="badge '+cls+'">'+lbl+'</span>'+rec+'</div>'+link+'</div>'+
+      '<button class="del" data-del-fixed="'+f.id+'" aria-label="Удалить">×</button></div></div>';
+  }).join('');
+}
+function renderFreeList(){
+  const box=document.getElementById('freeList');
+  if(!box)return;
+  if(!state.free.length){box.innerHTML='<p class="empty">Пока нет свободных окон.</p>';return;}
+  box.innerHTML=state.free.map(f=>{
+    const dur=(mkDateTime(f.date,f.end)-mkDateTime(f.date,f.start))/60000;
+    return '<div class="item"><div class="row-info"><div><div class="title">'+fmtDateRu(f.date)+'</div>'+
+      '<div class="meta">'+f.start+'–'+f.end+' · '+fmtMin(dur)+'</div></div>'+
+      '<button class="del" data-del-free="'+f.id+'" aria-label="Удалить">×</button></div></div>';
+  }).join('');
+}
+function renderTaskList(){
+  const box=document.getElementById('taskList');
+  if(!box)return;
+  syncTaskStatuses();
+  if(!state.tasks.length){box.innerHTML='<p class="empty">Пока нет учебных задач.</p>';return;}
+  box.innerHTML=state.tasks.map((t,idx)=>{
+    const pcls=t.priority==='high'?'b-high':t.priority==='mid'?'b-mid':'b-low';
+    const plbl=t.priority==='high'?'Высокий':t.priority==='mid'?'Средний':'Низкий';
+    const scls=t.status==='planned'?'b-planned':t.status==='progress'?'b-progress':t.status==='done'?'b-done':'b-overdue';
+    const slbl=t.status==='planned'?'Запланировано':t.status==='progress'?'В процессе':t.status==='done'?'Выполнено':'Просрочено';
+    const split=t.allowSplit?' <span class="badge b-other">дробление</span>':'';
+    const link=t.link?'<a href="'+escapeHtml(t.link)+'" target="_blank" rel="noopener" style="color:var(--primary);font-size:12px">материалы ↗</a> · ':'';
+    return '<div class="item"><div class="row-info"><div><div class="title">'+escapeHtml(t.title)+'</div>'+
+      '<div class="meta">⏰ '+fmtDateTime(new Date(t.deadline+':00'))+' · '+fmtMin(t.duration)+split+' · '+link+'<span class="badge '+pcls+'">'+plbl+'</span> <span class="badge '+scls+'">'+slbl+'</span></div></div>'+
+      '<button class="del" data-del-task="'+t.id+'" aria-label="Удалить">×</button></div>'+
+      '<div class="actions">'+
+        '<select class="task-status-sel" data-status-task="'+t.id+'">'+
+          ['planned','progress','done','overdue'].map(s=>'<option value="'+s+'"'+(s===t.status?' selected':'')+'>'+({planned:'Запланировано',progress:'В процессе',done:'Выполнено',overdue:'Просрочено'}[s])+'</option>').join('')+
+        '</select>'+
+        '<button class="mini ghost" data-edit-task="'+t.id+'">Изменить</button>'+
+        '<button class="mini ghost up" data-order-up="'+t.id+'">▲</button>'+
+        '<button class="mini ghost down" data-order-down="'+t.id+'">▼</button>'+
+      '</div></div>';
+  }).join('');
+}
+function renderWeekInputs(){
+  document.getElementById('weekStart').value=state.weekStart||'';
+  document.getElementById('weekEnd').value=state.weekEnd||'';
+  document.getElementById('buffer').value=state.buffer!=null?state.buffer:15;
+}
+
+/* ---------- Рендеринг расписания вуза ---------- */
+function renderUni(){
+  const statusEl=document.getElementById('uniStatus');
+  const lastEl=document.getElementById('uniLastUpdated');
+  const labelEl=document.getElementById('uniWeekLabel');
+  const viewEl=document.getElementById('uniWeekView');
+  const groupEl=document.getElementById('uniGroup');
+  if(groupEl)groupEl.value=state.uni.group||'';
+  // Статус
+  const hasSched=state.uni.schedule.length>0;
+  const dotClass=hasSched?'ok':'demo';
+  const dotText=hasSched?('загружено: '+state.uni.schedule.filter(l=>l.status!=='cancelled').length+' занятий'):'не загружено';
+  if(statusEl)statusEl.innerHTML='<span class="dot '+dotClass+'"></span><span>'+dotText+'</span> <span class="demo-tag">учебный пример</span>';
+  if(lastEl)lastEl.innerHTML=state.uni.lastUpdated?('Последнее обновление: '+fmtDateTime(new Date(state.uni.lastUpdated))):'Расписание ещё не обновлялось.';
+  const monday=currentUniMonday();
+  const sunday=addDaysISO(monday,6);
+  if(labelEl)labelEl.textContent=fmtDateRu(monday)+' — '+fmtDateRu(sunday)+(state.uni.weekOffset?(' ('+(state.uni.weekOffset>0?'+':'')+state.uni.weekOffset+' нед.)'):'');
+  if(!state.uni.schedule.length){
+    if(viewEl)viewEl.innerHTML='<div class="info-banner">Нажмите «Обновить расписание», чтобы загрузить демонстрационные занятия для группы «'+escapeHtml(state.uni.group||'')+'».</div>';
+    return;
+  }
+  // Группировка по дням
+  const byDay={};
+  for(let i=0;i<7;i++){byDay[addDaysISO(monday,i)]=[];}
+  state.uni.schedule.forEach(l=>{if(byDay[l.date])byDay[l.date].push(l);});
+  let html='';
+  for(let i=0;i<7;i++){
+    const iso=addDaysISO(monday,i);
+    const lessons=(byDay[iso]||[]).sort((a,b)=>a.start.localeCompare(b.start));
+    html+='<div class="day"><div class="day-head"><span class="name">'+WEEKDAYS[i]+'</span><span class="date">'+new Date(iso+'T00:00:00').toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'})+'</span></div>';
+    if(!lessons.length){html+='<div class="slot"><span class="muted">нет занятий</span></div>';}
+    else{
+      lessons.forEach(l=>{
+        const cls=l.status==='cancelled'?'cancelled':l.status==='moved'?'moved':'';
+        const tag=l.status==='cancelled'?'<span class="badge b-overdue">отменено</span>':l.status==='moved'?'<span class="badge b-mid">перенесено</span>':'';
+        html+='<div class="uni-lesson '+cls+'"><span class="ul-time">'+l.start+'–'+l.end+'</span> '+tag+
+          '<div class="ul-title">'+escapeHtml(l.title)+'</div>'+
+          '<div class="ul-meta">'+escapeHtml(l.type)+' · '+escapeHtml(l.teacher||'—')+' · ауд. '+escapeHtml(l.room||'—')+
+          (l.note?(' · '+escapeHtml(l.note)):'')+'</div></div>';
+      });
+    }
+    html+='</div>';
+  }
+  if(viewEl)viewEl.innerHTML=html;
+}
+
+/* ---------- Рендеринг результата ---------- */
+function renderResult(){
+  const area=document.getElementById('resultArea');
+  if(!area)return;
+  if(!state.plan){area.innerHTML='<div class="card"><p class="empty">Нажмите «Рассчитать план», чтобы увидеть результат.</p></div>';return;}
+  const p=state.plan;
+  const toDate=x=>(x instanceof Date)?x:new Date(x);
+  (p.fixedEv||[]).forEach(f=>{f._s=toDate(f._s);f._e=toDate(f._e);});
+  (p.placed||[]).forEach(pl=>{pl.s=toDate(pl.s);pl.e=toDate(pl.e);pl.task._dl=toDate(pl.task._dl);
+    (pl.sessions||[]).forEach(s=>{s.s=toDate(s.s);s.e=toDate(s.e);});});
+  (p.conflicts||[]).forEach(c=>{if(c.a){c.a._s=toDate(c.a._s);c.a._e=toDate(c.a._e);}if(c.b){c.b._s=toDate(c.b._s);c.b._e=toDate(c.b._e);}});
+  (p.studyIntervals||[]).forEach(si=>{si.s=toDate(si.s);si.e=toDate(si.e);});
+  (p.summary.nearestDeadlines||[]).forEach(d=>{d._dl=toDate(d._dl);});
+  let html='';
+
+  // Сводка
+  html+='<div class="card"><h2>Сводка</h2><div class="stat-grid">'+
+    '<div class="stat blue"><div class="num">'+p.summary.totalTasks+'</div><div class="lbl">Всего задач</div></div>'+
+    '<div class="stat green"><div class="num">'+p.summary.placedCount+'</div><div class="lbl">Размещено</div></div>'+
+    '<div class="stat amber"><div class="num">'+(p.summary.partialCount||0)+'</div><div class="lbl">Частично</div></div>'+
+    '<div class="stat red"><div class="num">'+p.summary.unplacedCount+'</div><div class="lbl">Не размещено</div></div>'+
+    '<div class="stat purple"><div class="num">'+p.summary.totalFreeHours.toFixed(1)+'</div><div class="lbl">Доступно ч</div></div>'+
+    '<div class="stat green"><div class="num">'+p.summary.plannedHours.toFixed(1)+'</div><div class="lbl">Запланировано ч</div></div>'+
+  '</div>';
+  if(p.summary.nearestDeadlines.length){
+    html+='<hr><div style="font-size:13px;font-weight:600;margin-bottom:4px">Ближайшие дедлайны</div><div class="deadline-list">';
+    p.summary.nearestDeadlines.forEach(d=>{
+      html+='<div class="dl-item"><span>'+escapeHtml(d.title)+'</span><span class="muted">'+fmtDateTime(d._dl)+'</span></div>';
+    });
+    html+='</div>';
+  }
+  html+='</div>';
+
+  // Diff перепланирования
+  if(p.replanDiff&&p.replanDiff.length){
+    html+='<div class="card"><h2>Изменения после перепланирования</h2>';
+    p.replanDiff.forEach(d=>{
+      const cls=d.kind==='moved'?'diff-moved':d.kind==='added'?'diff-added':'diff-removed';
+      html+='<div class="diff-line '+cls+'">'+escapeHtml(d.text)+'</div>';
+    });
+    html+='</div>';
+  }
+
+  // Конфликты
+  html+='<div class="card"><h2>Конфликты ('+p.conflicts.length+')</h2>';
+  if(!p.conflicts.length)html+='<p class="empty">Конфликтов не обнаружено.</p>';
+  else p.conflicts.forEach(c=>{
+    if(c.type==='fixed_overlap'){
+      html+='<div class="conflict-item"><div class="ci-title">Пересечение событий</div>'+
+        '<div class="ci-desc">'+escapeHtml(c.a.title)+' ('+fmtRange(c.a._s,c.a._e)+') и '+escapeHtml(c.b.title)+' ('+fmtRange(c.b._s,c.b._e)+')</div></div>';
+    }else if(c.type==='buffer_conflict'){
+      html+='<div class="conflict-item"><div class="ci-title">Недостаточно времени перехода</div>'+
+        '<div class="ci-desc">Между «'+escapeHtml(c.a.title)+'» и «'+escapeHtml(c.b.title)+'» всего '+fmtMin(c.gap)+' (буфер '+state.buffer+' мин).</div></div>';
+    }
+  });
+  html+='</div>';
+
+  // Неразмещённые
+  html+='<div class="card"><h2>Неразмещённые задачи ('+p.unplaced.length+')</h2>';
+  if(!p.unplaced.length)html+='<p class="empty">Все задачи размещены.</p>';
+  else p.unplaced.forEach(u=>{
+    html+='<div class="unplaced-item"><div class="ui-title">'+escapeHtml(u.task.title)+'</div>'+
+      '<div class="ui-meta">⏰ '+fmtDateTime(u.task._dl)+' · '+fmtMin(u.task.duration)+' · '+(u.task.priority==='high'?'высокий':u.task.priority==='mid'?'средний':'низкий')+'</div>'+
+      '<div class="ui-reason">'+escapeHtml(u.reason)+'</div></div>';
+  });
+  html+='</div>';
+
+  // Список размещённых задач с сессиями и ручным управлением
+  html+='<div class="card"><h2>Размещённые задачи</h2>';
+  if(!p.placed.length)html+='<p class="empty">Нет размещённых задач.</p>';
+  else p.placed.forEach(pl=>{
+    const pin=pl.pinned?'<span class="badge b-study">закреплена</span> ':'';
+    const part=pl.partial?'<span class="badge b-mid">частично</span> ':'';
+    const totalMs=pl.sessions.reduce((s,x)=>s+(x.e.getTime()-x.s.getTime()),0);
+    html+='<div class="item"><div class="row-info"><div><div class="title">'+escapeHtml(pl.task.title)+'</div>'+
+      '<div class="meta">'+pin+part+fmtMin(totalMs/60000)+' из '+fmtMin(pl.task.duration)+' · '+pl.sessions.length+' сессия(ий)</div>'+
+      '<div style="margin-top:4px">'+pl.sessions.map(s=>'<span class="session-chip">'+fmtDateTime(s.s)+' ('+fmtMin((s.e-s.s)/60000)+')</span>').join('')+'</div>'+
+      (pl.partial?'<div class="partial-warn">Остаток не помещён — см. раздел «Неразмещённые задачи».</div>':'')+
+      '</div></div>'+
+      '<div class="actions">'+
+        '<button class="mini '+(pl.pinned?'primary':'ghost')+'" data-pin-task="'+pl.task.id+'">'+(pl.pinned?'Открепить':'Закрепить')+'</button>'+
+        '<button class="mini ghost" data-move-task="'+pl.task.id+'">Перенести</button>'+
+      '</div></div>';
+  });
+  html+='</div>';
+
+  // Календарь недели
+  html+='<div class="card"><h2>Календарь недели</h2>';
+  html+='<div class="legend">'+
+    '<span class="lg fixed-work">Работа</span>'+
+    '<span class="lg fixed-study">Пары вуза</span>'+
+    '<span class="lg fixed-personal">Личное</span>'+
+    '<span class="lg study">Уч. задача</span>'+
+    '<span class="lg free">Свободно</span>'+
+    '<span class="lg conflict">Конфликт</span>'+
+  '</div><div style="height:10px"></div>';
+  const days={};
+  if(state.weekStart&&state.weekEnd){let d=state.weekStart;while(d<=state.weekEnd){days[d]=[];d=addDaysISO(d,1);}}
+  const allSlots=[];
+  p.fixedEv.forEach(f=>{allSlots.push({date:f.date,s:f._s,e:f._e,type:'fixed',subtype:f.type,title:f.title,link:f.link,origin:f.origin,room:f.room,teacher:f.teacher});});
+  p.placed.forEach(pl=>{
+    pl.sessions.forEach(s=>{
+      allSlots.push({date:s.s.toISOString().slice(0,10),s:s.s,e:s.e,type:'study',title:pl.task.title,link:pl.task.link,priority:pl.task.priority,pinned:pl.pinned,sessionId:pl.task.id});
+    });
+  });
+  const placedIntervals=p.placed.flatMap(pl=>pl.sessions.map(s=>({s:s.s,e:s.e})));
+  p.studyIntervals.forEach(si=>{
+    let pieces=[{s:new Date(si.s),e:new Date(si.e)}];
+    placedIntervals.forEach(pi=>{
+      const next=[];
+      pieces.forEach(pc=>{
+        if(overlaps(pc.s,pc.e,pi.s,pi.e)){
+          if(pc.s.getTime()<pi.s.getTime())next.push({s:pc.s,e:new Date(pi.s)});
+          if(pi.e.getTime()<pc.e.getTime())next.push({s:new Date(pi.e),e:pc.e});
+        }else next.push(pc);
+      });
+      pieces=next;
+    });
+    pieces.forEach(pc=>{if(pc.e.getTime()-pc.s.getTime()>0)allSlots.push({date:pc.s.toISOString().slice(0,10),s:pc.s,e:pc.e,type:'free'});});
+  });
+  const conflictDates={};
+  p.conflicts.forEach(c=>{if(c.type==='fixed_overlap'||c.type==='buffer_conflict'){conflictDates[c.a.date]=true;conflictDates[c.b.date]=true;}});
+  Object.keys(days).forEach(date=>{
+    const daySlots=allSlots.filter(s=>s.date===date).sort((a,b)=>a.s-b.s);
+    const wd=new Date(date+'T00:00:00');let w=wd.getDay();w=w===0?6:w-1;
+    html+='<div class="day"><div class="day-head"><span class="name">'+WEEKDAYS[w]+'</span><span class="date">'+wd.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'})+(conflictDates[date]?' · ⚠':'')+'</span></div>';
+    if(!daySlots.length)html+='<div class="slot"><span class="muted">нет событий</span></div>';
+    else daySlots.forEach(s=>{
+      const tm='<span class="time">'+s.s.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+'–'+s.e.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+'</span>';
+      if(s.type==='fixed'){
+        const isUni=s.origin==='uni';
+        const cls=isUni?'uni':s.subtype==='work'?'fixed-work':s.subtype==='study'?'fixed-study':s.subtype==='personal'?'fixed-personal':'fixed-other';
+        const lbl=isUni?'Пара вуза':s.subtype==='work'?'Работа':s.subtype==='study'?'Учёба':s.subtype==='personal'?'Личное':'Другое';
+        const extra=isUni?(' · '+escapeHtml(s.teacher||'')+' · ауд. '+escapeHtml(s.room||'')):'';
+        html+='<div class="slot '+cls+'">'+tm+'<span class="lbl">'+escapeHtml(s.title)+'</span> <small>'+lbl+extra+(s.link?' · <a href="'+escapeHtml(s.link)+'" target="_blank" rel="noopener">ссылка</a>':'')+'</small></div>';
+      }else if(s.type==='study'){
+        const pcls=s.pinned?'pinned':'';
+        html+='<div class="slot study '+pcls+'">'+tm+'<span class="lbl">'+escapeHtml(s.title)+'</span> <small>Учебная задача'+(s.link?' · <a href="'+escapeHtml(s.link)+'" target="_blank" rel="noopener">материалы</a>':'')+'</small></div>';
+      }else if(s.type==='free'){
+        const dur=(s.e.getTime()-s.s.getTime())/60000;
+        html+='<div class="slot free">'+tm+'<span class="lbl">Свободно</span> <small>'+fmtMin(dur)+' для учёбы</small></div>';
+      }
+    });
+    html+='</div>';
+  });
+  html+='</div>';
+  area.innerHTML=html;
+}
+
+/* ---------- Модальные окна форм ---------- */
+function openModal(html){
+  document.getElementById('modal').innerHTML=html;
+  document.getElementById('modalBg').classList.add('show');
+}
+function closeModal(){document.getElementById('modalBg').classList.remove('show');}
+
+function modalFixed(id){
+  const f=id?state.fixed.find(x=>x.id===id):{type:'work'};
+  openModal(
+    '<button class="close" onclick="closeModal()">×</button>'+
+    '<h3>'+(id?'Изменить событие':'Добавить событие')+'</h3>'+
+    '<div class="field"><label>Название *</label><input id="fTitle" value="'+escapeHtml(f.title||'')+'" placeholder="Напр.: Рабочая смена"></div>'+
+    '<div class="field"><label>Дата *</label><input type="date" id="fDate" value="'+(f.date||state.weekStart||todayISO())+'"></div>'+
+    '<div class="row"><div class="field"><label>Начало *</label><input type="time" id="fStart" value="'+(f.start||'09:00')+'"></div>'+
+    '<div class="field"><label>Окончание *</label><input type="time" id="fEnd" value="'+(f.end||'17:00')+'"></div></div>'+
+    '<div class="field"><label>Тип события</label><select id="fType">'+typeOptions(f.type)+'</select></div>'+
+    '<div class="field"><label>Ссылка (необязательно)</label><input id="fLink" value="'+escapeHtml(f.link||'')+'" placeholder="https://..."></div>'+
+    '<div id="fErr" class="err-msg"></div>'+
+    '<button class="btn btn-primary" id="fSave">Сохранить</button>'
+  );
+  document.getElementById('fSave').onclick=()=>{
+    const obj={title:val('fTitle'),date:val('fDate'),start:val('fStart'),end:val('fEnd'),type:val('fType'),link:val('fLink').trim()};
+    const errs=validateFixed(obj);
+    if(errs.length){document.getElementById('fErr').textContent=errs[0];return;}
+    if(id){const i=state.fixed.findIndex(x=>x.id===id);state.fixed[i]={...state.fixed[i],...obj};}
+    else{obj.id=uid();obj.origin='manual';state.fixed.push(obj);}
+    save();renderFixedList();closeModal();toast('Событие сохранено','ok');
+  };
+}
+function modalFree(id){
+  const f=id?state.free.find(x=>x.id===id):{};
+  openModal(
+    '<button class="close" onclick="closeModal()">×</button>'+
+    '<h3>'+(id?'Изменить окно':'Добавить свободное окно')+'</h3>'+
+    '<div class="field"><label>Дата *</label><input type="date" id="oDate" value="'+(f.date||state.weekStart||todayISO())+'"></div>'+
+    '<div class="row"><div class="field"><label>Начало *</label><input type="time" id="oStart" value="'+(f.start||'18:00')+'"></div>'+
+    '<div class="field"><label>Окончание *</label><input type="time" id="oEnd" value="'+(f.end||'21:00')+'"></div></div>'+
+    '<div id="oErr" class="err-msg"></div>'+
+    '<button class="btn btn-primary" id="oSave">Сохранить</button>'
+  );
+  document.getElementById('oSave').onclick=()=>{
+    const obj={date:val('oDate'),start:val('oStart'),end:val('oEnd')};
+    const errs=validateFree(obj);
+    if(errs.length){document.getElementById('oErr').textContent=errs[0];return;}
+    if(id){const i=state.free.findIndex(x=>x.id===id);state.free[i]={...state.free[i],...obj};}
+    else{obj.id=uid();state.free.push(obj);}
+    save();renderFreeList();closeModal();toast('Окно сохранено','ok');
+  };
+}
+function modalTask(id){
+  const t=id?state.tasks.find(x=>x.id===id):{priority:'mid',allowSplit:false,status:'planned'};
+  const prioSel=(cur)=>[['low','Низкий'],['mid','Средний'],['high','Высокий']].map(p=>'<option value="'+p[0]+'"'+(p[0]===cur?' selected':'')+'>'+p[1]+'</option>').join('');
+  const dlDefault=t.deadline?t.deadline:(state.weekEnd?state.weekEnd+'T23:59':todayISO()+'T23:59');
+  openModal(
+    '<button class="close" onclick="closeModal()">×</button>'+
+    '<h3>'+(id?'Изменить задачу':'Добавить задачу')+'</h3>'+
+    '<div class="field"><label>Название *</label><input id="tTitle" value="'+escapeHtml(t.title||'')+'" placeholder="Напр.: Эссе по философии"></div>'+
+    '<div class="field"><label>Дедлайн *</label><input type="datetime-local" id="tDeadline" value="'+escapeHtml(dlDefault)+'"></div>'+
+    '<div class="row"><div class="field"><label>Длительность, мин *</label><input type="number" id="tDur" min="5" step="5" value="'+(t.duration||60)+'"></div>'+
+    '<div class="field"><label>Приоритет</label><select id="tPrio">'+prioSel(t.priority)+'</select></div></div>'+
+    '<div class="switch"><input type="checkbox" id="tSplit" '+(t.allowSplit?'checked':'')+'><label for="tSplit" style="font-size:13px">Разрешить дробление задачи на несколько учебных сессий</label></div>'+
+    '<p class="small">Если включено — задача распределяется по нескольким окнам (каждая сессия ≥ 30 мин, с учётом буфера и дедлайна).</p>'+
+    '<div class="field"><label>Ссылка на материалы (необязательно)</label><input id="tLink" value="'+escapeHtml(t.link||'')+'" placeholder="https://..."></div>'+
+    '<div id="tErr" class="err-msg"></div>'+
+    '<button class="btn btn-primary" id="tSave">Сохранить</button>'
+  );
+  document.getElementById('tSave').onclick=()=>{
+    const obj={title:val('tTitle'),deadline:val('tDeadline'),duration:Number(val('tDur')),priority:val('tPrio'),link:val('tLink').trim(),
+               allowSplit:document.getElementById('tSplit').checked};
+    const errs=validateTask(obj);
+    if(errs.length){document.getElementById('tErr').textContent=errs[0];return;}
+    if(id){const i=state.tasks.findIndex(x=>x.id===id);state.tasks[i]={...state.tasks[i],...obj};}
+    else{obj.id=uid();obj.status='planned';obj.remaining=obj.duration;state.tasks.push(obj);}
+    save();renderTaskList();closeModal();toast('Задача сохранена','ok');
+  };
+}
+
+/* ---------- Вкладка «Материалы для подготовки» ----------
+   Демонстрационная база дисциплин и тестов. Расширяемая структура.
+   Три типа вопросов: single (один ответ), multi (несколько), bool (верно/неверно). */
+const MATERIALS = {
+  disciplines: [
+    {id:'econ',name:'Экономика',icon:'📊',color:'#dbeafe',desc:'Микро- и макроэкономика, рынки, спрос и предложение',tests:2,time:'~25 мин'},
+    {id:'mgmt',name:'Менеджмент',icon:'🎯',color:'#ede9fe',desc:'Принципы управления, мотивация, организация труда',tests:2,time:'~22 мин'},
+    {id:'law',name:'Право',icon:'⚖️',color:'#fef3c7',desc:'Основы правоведения, отрасли права, правонарушения',tests:2,time:'~24 мин'},
+    {id:'hist',name:'История',icon:'📜',color:'#dcfce7',desc:'История России, ключевые события и периоды',tests:2,time:'~20 мин'},
+    {id:'gmu',name:'Государственное и муниципальное управление',icon:'🏛️',color:'#ccfbf1',desc:'Система государственного управления, местное самоуправление',tests:1,time:'~15 мин'},
+    {id:'it',name:'Информационные технологии',icon:'💻',color:'#fee2e2',desc:'Основы ИТ, алгоритмы, программирование, сети',tests:2,time:'~26 мин'}
+  ],
+  quizzes: {
+    econ:[
+      {id:'econ1',title:'Спрос и предложение',topic:'Микроэкономика',questions:5,time:'10 мин',level:'Средний',items:[
+        {q:'Закон спроса утверждает, что при росте цены на товар:',type:'single',options:['Объём спроса растёт','Объём спроса падает','Спрос не меняется','Цена не влияет на спрос'],answer:[1],explain:'По закону спроса при прочих равных условиях рост цены ведёт к снижению объёма спроса.'},
+        {q:'Что произойдёт с равновесной ценой при увеличении предложения?',type:'single',options:['Вырастет','Снизится','Не изменится','Станет равна нулю'],answer:[1],explain:'Рост предложения сдвигает кривую вправо, равновесная цена снижается, объём растёт.'},
+        {q:'Выберите неценовые факторы спроса:',type:'multi',options:['Доходы потребителей','Цены на товары-заменители','Вкусы и предпочтения','Цена самого товара'],answer:[0,1,2],explain:'Цена самого товара — ценовой фактор; остальные — неценовые детерминанты спроса.'},
+        {q:'Эластичность спроса по цене показывает, насколько изменится объём спроса при изменении цены на 1%.',type:'bool',options:['Верно','Неверно'],answer:[0],explain:'Это определение точечной эластичности спроса по цене.'},
+        {q:'Товар Гиффена — это товар, для которого рост цены ведёт к росту спроса.',type:'bool',options:['Верно','Неверно'],answer:[0],explain:'Для товаров Гиффена (малоценных низших благ) эффект дохода превышает эффект замещения.'}
+      ]},
+      {id:'econ2',title:'Макроэкономические показатели',topic:'Макроэкономика',questions:4,time:'12 мин',level:'Средний',items:[
+        {q:'ВВП — это:',type:'single',options:['Сумма всех доходов населения','Рыночная стоимость всех конечных товаров и услуг за год','Объём экспорта страны','Сумма налоговых поступлений'],answer:[1],explain:'ВВП измеряет рыночную стоимость всех конечных товаров и услуг, произведённых на территории страны за период.'},
+        {q:'Что НЕ входит в расчёт ВВП по расходам?',type:'single',options:['Потребление','Инвестиции','Государственные закупки','Амортизация'],answer:[3],explain:'ВВП по расходам = C + I + G + NX. Амортизация учитывается в ВНД, но не в компонентах расходов ВВП.'},
+        {q:'Дефлятор ВВП отражает изменение уровня цен всех конечных товаров и услуг.',type:'bool',options:['Верно','Неверно'],answer:[0],explain:'Дефлятор ВВП — индекс цен для всех товаров и услуг, входящих в ВВП.'},
+        {q:'Выберите инструменты монетарной политики:',type:'multi',options:['Ключевая ставка','Норма обязательных резервов','Налоговые ставки','Операции на открытом рынке'],answer:[0,1,3],explain:'Налоги — фискальная политика; ставка, резервы и операции на рынке — монетарная.'}
+      ]}
+    ],
+    mgmt:[
+      {id:'mgmt1',title:'Основы менеджмента',topic:'Теория управления',questions:4,time:'10 мин',level:'Базовый',items:[
+        {q:'Что относится к функциям менеджмента по Файолю?',type:'multi',options:['Планирование','Организация','Мотивация','Координация','Контроль'],answer:[0,1,2,3,4],explain:'Файоль выделял планирование, организацию, мотивацию (распорядительство), координацию и контроль.'},
+        {q:'Стиль управления, при котором руководитель единолично принимает решения:',type:'single',options:['Демократический','Авторитарный','Либеральный','Коллегиальный'],answer:[1],explain:'Авторитарный стиль характеризуется единоличным принятием решений.'},
+        {q:'Пирамида потребностей Маслоу включает физиологические потребности, безопасность, принадлежность, уважение и самовыражение.',type:'bool',options:['Верно','Неверно'],answer:[0],explain:'Это классическая пятиуровневая пирамида потребностей А. Маслоу.'},
+        {q:'Что такое делегирование?',type:'single',options:['Передача задач и полномочий подчинённым','Увольнение сотрудника','Составление отчёта','Утверждение бюджета'],answer:[0],explain:'Делегирование — передача задач и соответствующих полномочий исполнителю.'}
+      ]},
+      {id:'mgmt2',title:'Мотивация персонала',topic:'Организационное поведение',questions:3,time:'8 мин',level:'Средний',items:[
+        {q:'Теория ожиданий Врума связывает мотивацию с:',type:'single',options:['Уровнем зарплаты','Ожиданием усилие→результат→вознаграждение','Возрастом сотрудника','Должностью'],answer:[1],explain:'Модель Врума: мотивация = ожидание × инструментальность × валентность.'},
+        {q:'Гигиенические факторы по Герцбергу предотвращают неудовлетворённость, но не мотивируют.',type:'bool',options:['Верно','Неверно'],answer:[0],explain:'Гигиенические факторы (условия, зарплата) убирают неудовлетворённость; мотиваторы (достижения, рост) создают мотивацию.'},
+        {q:'Выберите мотиваторы по двухфакторной теории Герцберга:',type:'multi',options:['Достижения','Признание','Условия труда','Ответственность','Политика компании'],answer:[0,1,3],explain:'Мотиваторы — достижения, признание, ответственность, рост; условия и политика — гигиенические.'}
+      ]}
+    ],
+    law:[
+      {id:'law1',title:'Основы правоведения',topic:'Теория права',questions:4,time:'10 мин',level:'Базовый',items:[
+        {q:'Что является источником права?',type:'multi',options:['Нормативный правовой акт','Правовой обычай','Судебный прецедент','Мнение гражданина'],answer:[0,1,2],explain:'Источник права — форма выражения правовых норм: акт, обычай, прецедент, договор.'},
+        {q:'В Российской Федерации высшей юридической силой обладает:',type:'single',options:['Гражданский кодекс','Конституция РФ','Указ Президента','Федеральный закон'],answer:[1],explain:'Конституция РФ имеет высшую юридическую силу, прямое действие и применяется на всей территории.'},
+        {q:'Проступок — это противоправное виновное деяние, влекущее дисциплинарную, административную или гражданско-правовую ответственность.',type:'bool',options:['Верно','Неверно'],answer:[0],explain:'Проступок (в отличие от преступления) не обладает общественной опасностью уголовной степени.'},
+        {q:'С какого возраста наступает полная гражданская дееспособность по общему правилу?',type:'single',options:['14 лет','16 лет','18 лет','21 год'],answer:[2],explain:'По общему правилу полная дееспособность наступает с 18 лет (эмансипация — с 16 при условиях).'}
+      ]},
+      {id:'law2',title:'Отрасли права',topic:'Система права',questions:3,time:'8 мин',level:'Базовый',items:[
+        {q:'Какая отрасль регулирует трудовые отношения работника и работодателя?',type:'single',options:['Гражданское право','Трудовое право','Административное право','Семейное право'],answer:[1],explain:'Трудовое право регулирует отношения по применению труда.'},
+        {q:'Сделка, совершённая под влиянием обмана, может быть признана недействительной.',type:'bool',options:['Верно','Неверно'],answer:[0],explain:'Такая сделка является оспоримой и может быть признана недействительной судом.'},
+        {q:'Выберите отрасли публичного права:',type:'multi',options:['Конституционное','Уголовное','Гражданское','Административное'],answer:[0,1,3],explain:'Публичное право — конституционное, уголовное, административное; гражданское — частное.'}
+      ]}
+    ],
+    hist:[
+      {id:'hist1',title:'Древняя Русь',topic:'IX–XIII века',questions:4,time:'10 мин',level:'Базовый',items:[
+        {q:'В каком году произошло призвание варягов согласно «Повести временных лет»?',type:'single',options:['862','988','1147','1242'],answer:[0],explain:'Согласно летописи, призвание варягов во главе с Рюриком датируют 862 годом.'},
+        {q:'Крещение Руси произошло при князе:',type:'single',options:['Ярославе Мудром','Владимире Великом','Иване III','Петре I'],answer:[1],explain:'Крещение Руси принято относить к 988 году при князе Владимире.'},
+        {q:'Ледовое побоище состоялось на Чудском озере в 1242 году.',type:'bool',options:['Верно','Неверно'],answer:[0],explain:'Битва войска Александра Невского с рыцарями на Чудском озере — 5 апреля 1242 г.'},
+        {q:'Выберите реформы Ярослава Мудрого:',type:'multi',options:['Издание Русской Правды','Денежная реформа','Градостроительство Киева','Судебник 1497 г.'],answer:[0,2],explain:'Ярослав Мудрый издал «Русскую Правду» и активно строил в Киеве; Судебник 1497 г. — Иван III.'}
+      ]},
+      {id:'hist2',title:'Российская империя',topic:'XVIII–начало XX в.',questions:4,time:'12 мин',level:'Средний',items:[
+        {q:'В каком году Пётр I провозгласил Россию империей?',type:'single',options:['1700','1721','1762','1861'],answer:[1],explain:'После Ништадтского мира 1721 года Пётр I принял титул императора.'},
+        {q:'Отмена крепостного права в России произошла в:',type:'single',options:['1825','1861','1905','1917'],answer:[1],explain:'Манифест 19 февраля 1861 г. отменил крепостное право.'},
+        {q:'«Потёмкинская деревня» связана с именем Екатерины II.',type:'bool',options:['Верно','Неверно'],answer:[0],explain:'Выражение связано с поездкой Екатерины II в Крым в 1787 г. и князем Г. Потёмкиным.'},
+        {q:'Выберите реформы Александра II:',type:'multi',options:['Крестьянская','Земская','Судебная','Столыпинская'],answer:[0,1,2],explain:'Александр II провёл крестьянскую, земскую, судебную, военную реформы; столыпинская — позже.'}
+      ]}
+    ],
+    gmu:[
+      {id:'gmu1',title:'Основы государственного управления',topic:'Государственное управление',questions:4,time:'12 мин',level:'Средний',items:[
+        {q:'Принцип разделения властей включает:',type:'multi',options:['Законодательную','Исполнительную','Судебную','Военную'],answer:[0,1,2],explain:'Классическое разделение: законодательная, исполнительная, судебная ветви власти.'},
+        {q:'Кто является главой государства в Российской Федерации?',type:'single',options:['Председатель Правительства','Председатель Государственной Думы','Президент РФ','Председатель Конституционного Суда'],answer:[2],explain:'Президент РФ — глава государства, гарант Конституции.'},
+        {q:'Местное самоуправление в РФ самостоятельно в пределах своих полномочий.',type:'bool',options:['Верно','Неверно'],answer:[0],explain:'Согласно ст. 12 Конституции РФ местное самоуправление самостоятельно.'},
+        {q:'Какой орган осуществляет исполнительную власть в РФ?',type:'single',options:['Государственная Дума','Правительство РФ','Конституционный Суд','Совет Федерации'],answer:[1],explain:'Правительство РФ — высший исполнительный орган государственной власти.'}
+      ]}
+    ],
+    it:[
+      {id:'it1',title:'Алгоритмы и программирование',topic:'Основы программирования',questions:5,time:'13 мин',level:'Средний',items:[
+        {q:'Какова временная сложность бинарного поиска в отсортированном массиве?',type:'single',options:['O(1)','O(log n)','O(n)','O(n²)'],answer:[1],explain:'На каждом шаге массив делится пополам — сложность O(log n).'},
+        {q:'Выберите корректные утверждения о сортировке:',type:'multi',options:['Сортировка пузырьком имеет сложность O(n²)','Сортировка слиянием стабильна','Быстрая сортировка всегда работает за O(n log n)','Сортировка вставками эффективна на почти отсортированных данных'],answer:[0,1,3],explain:'Быстрая сортировка в худшем случае O(n²); остальные утверждения верны.'},
+        {q:'Стек работает по принципу LIFO (последним пришёл — первым ушёл).',type:'bool',options:['Верно','Неверно'],answer:[0],explain:'LIFO — Last In, First Out, базовое свойство стека.'},
+        {q:'Какое ключевое слово используется для объявления константы в JavaScript (ES6+)?',type:'single',options:['var','let','const','final'],answer:[2],explain:'const объявляет константу, не подлежащую переопределению.'},
+        {q:'Рекурсия обязательно требует базового случая для завершения.',type:'bool',options:['Верно','Неверно'],answer:[0],explain:'Без базового случая рекурсия бесконечна и приведёт к переполнению стека.'}
+      ]},
+      {id:'it2',title:'Сети и базы данных',topic:'Компьютерные сети',questions:4,time:'10 мин',level:'Базовый',items:[
+        {q:'Какой протокол используется для передачи веб-страниц?',type:'single',options:['FTP','HTTP','SMTP','SSH'],answer:[1],explain:'HTTP/HTTPS — протокол передачи гипертекста (веб-страниц).'},
+        {q:'Выберите реляционные СУБД:',type:'multi',options:['MySQL','MongoDB','PostgreSQL','SQLite'],answer:[0,2,3],explain:'MongoDB — документоориентированная (NoSQL); остальные реляционные.'},
+        {q:'IP-адрес версии 4 состоит из 32 бит.',type:'bool',options:['Верно','Неверно'],answer:[0],explain:'IPv4 — 32-битный адрес, записывается четырьмя октетами.'},
+        {q:'Команда SQL для выборки данных:',type:'single',options:['INSERT','SELECT','UPDATE','DELETE'],answer:[1],explain:'SELECT — выборка данных из таблицы.'}
+      ]}
+    ]
+  }
+};
+
+let materialsView={disc:null,quiz:null,answers:[],qIdx:0};
+
+function renderMaterials(){
+  const area=document.getElementById('materialsArea');
+  if(!area)return;
+  if(materialsView.disc&&materialsView.quiz){renderQuiz(area);return;}
+  if(materialsView.disc){renderDiscipline(area);return;}
+  renderDisciplinesGrid(area);
+}
+
+function renderDisciplinesGrid(area){
+  const totalTests=Object.values(MATERIALS.quizzes).reduce((s,a)=>s+a.length,0);
+  let html='<div class="card"><h2>Материалы для подготовки</h2>';
+  html+='<span class="demo-tag">Демонстрационные материалы</span>';
+  html+='<p class="small" style="margin-top:6px">Выберите дисциплину, пройдите тест и проверьте свои знания. После теста можно добавить задачу на повторение темы в планировщик.</p>';
+  html+='<input class="search-box" id="matSearch" placeholder="🔍 Поиск дисциплины или темы...">';
+  html+='<div class="disc-grid" id="discGrid"></div></div>';
+  html+=renderMaterialsStats();
+  area.innerHTML=html;
+  const grid=document.getElementById('discGrid');
+  const render=(filter)=>{
+    const f=filter.toLowerCase();
+    grid.innerHTML=MATERIALS.disciplines.map(d=>{
+      const tests=MATERIALS.quizzes[d.id]||[];
+      const matchTxt=(d.name+' '+d.desc+' '+tests.map(t=>t.title+' '+t.topic).join(' ')).toLowerCase();
+      if(f&&!matchTxt.includes(f))return '';
+      return '<div class="disc-card" data-disc="'+d.id+'">'+
+        '<div class="dc-icon" style="background:'+d.color+'">'+d.icon+'</div>'+
+        '<div class="dc-name">'+escapeHtml(d.name)+'</div>'+
+        '<div class="dc-desc">'+escapeHtml(d.desc)+'</div>'+
+        '<div class="dc-meta"><span>📝 '+tests.length+' тестов</span><span>⏱ '+d.time+'</span></div>'+
+        '</div>';
+    }).join('');
+    grid.querySelectorAll('[data-disc]').forEach(el=>el.onclick=()=>{materialsView.disc=el.dataset.disc;renderMaterials();});
+  };
+  render('');
+  const search=document.getElementById('matSearch');
+  if(search)search.oninput=()=>render(search.value);
+}
+
+function renderDiscipline(area){
+  const d=MATERIALS.disciplines.find(x=>x.id===materialsView.disc);
+  if(!d){materialsView.disc=null;renderMaterials();return;}
+  const tests=MATERIALS.quizzes[d.id]||[];
+  let html='<div class="card"><button class="mini ghost" id="discBack" style="margin-bottom:10px">‹ Назад к дисциплинам</button>'+
+    '<h2>'+d.icon+' '+escapeHtml(d.name)+'</h2><p class="small">'+escapeHtml(d.desc)+'</p></div>';
+  html+='<div class="card"><h2>Доступные тесты ('+tests.length+')</h2>';
+  if(!tests.length)html+='<p class="empty">Для этой дисциплины пока нет тестов.</p>';
+  else tests.forEach(q=>{
+    html+='<div class="quiz-card"><div class="qc-title">'+escapeHtml(q.title)+'</div>'+
+      '<div class="qc-meta">📖 '+escapeHtml(q.topic)+' · ❓ '+q.questions+' вопросов · ⏱ '+q.time+' · ';
+    const lvlCls=q.level==='Базовый'?'b-low':q.level==='Средний'?'b-mid':'b-high';
+    html+='<span class="badge '+lvlCls+'">'+escapeHtml(q.level)+'</span></div>'+
+      '<button class="mini primary" data-start-quiz="'+q.id+'">Начать тест</button></div>';
+  });
+  html+='</div>';
+  area.innerHTML=html;
+  document.getElementById('discBack').onclick=()=>{materialsView.disc=null;renderMaterials();};
+  area.querySelectorAll('[data-start-quiz]').forEach(b=>b.onclick=()=>{
+    materialsView.quiz=MATERIALS.quizzes[d.id].find(x=>x.id===b.dataset.startQuiz);
+    materialsView.answers=new Array(materialsView.quiz.items.length).fill(null);
+    materialsView.qIdx=0;
+    renderMaterials();
+  });
+}
+
+function renderQuiz(area){
+  const q=materialsView.quiz;
+  if(!q){materialsView.disc=null;materialsView.quiz=null;renderMaterials();return;}
+  // Если завершён (answers все заполнены и показан результат) — renderQuizResult
+  if(materialsView.finished){renderQuizResult(area);return;}
+  const idx=materialsView.qIdx;
+  const item=q.items[idx];
+  const total=q.items.length;
+  const progress=Math.round(((idx)/total)*100);
+  let html='<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'+
+    '<button class="mini ghost" id="qQuit">‹ Выйти</button>'+
+    '<span class="small">Вопрос '+(idx+1)+' из '+total+'</span></div>'+
+    '<div class="q-progress"><div style="width:'+progress+'%"></div></div>'+
+    '<h3 style="margin-top:6px">'+escapeHtml(item.q)+'</h3>';
+  const typeLbl=item.type==='single'?'Выберите один ответ':item.type==='multi'?'Выберите несколько ответов':'Верно или неверно';
+  html+='<p class="small">'+typeLbl+'</p>';
+  const cur=materialsView.answers[idx]||[];
+  item.options.forEach((opt,i)=>{
+    const sel=cur.includes(i);
+    html+='<div class="q-option '+(sel?'sel':'')+'" data-opt="'+i+'"><span class="qo-mark">'+String.fromCharCode(65+i)+'</span><span>'+escapeHtml(opt)+'</span></div>';
+  });
+  html+='<div class="btn-row" style="margin-top:10px">'+
+    '<button class="btn btn-ghost" id="qPrev" '+(idx===0?'disabled':'')+'>← Пред.</button>'+
+    '<button class="btn btn-primary" id="qNext">'+(idx===total-1?'Завершить тест':'След. →')+'</button></div></div>';
+  area.innerHTML=html;
+  document.getElementById('qQuit').onclick=()=>{if(confirm('Выйти из теста? Ответы не сохранятся.')){materialsView.quiz=null;materialsView.finished=false;renderMaterials();}};
+  area.querySelectorAll('[data-opt]').forEach(el=>el.onclick=()=>{
+    const i=Number(el.dataset.opt);
+    let a=materialsView.answers[idx]||[];
+    if(item.type==='multi'){a=a.includes(i)?a.filter(x=>x!==i):[...a,i];}
+    else{a=[i];}
+    materialsView.answers[idx]=a;
+    renderMaterials();
+  });
+  document.getElementById('qPrev').onclick=()=>{if(idx>0){materialsView.qIdx--;renderMaterials();}};
+  document.getElementById('qNext').onclick=()=>{
+    if(!materialsView.answers[idx]||!materialsView.answers[idx].length){toast('Выберите ответ','err');return;}
+    if(idx===total-1){finishQuiz();}
+    else{materialsView.qIdx++;renderMaterials();}
+  };
+}
+
+function finishQuiz(){
+  materialsView.finished=true;
+  // Подсчёт
+  const q=materialsView.quiz;
+  let correct=0;
+  q.items.forEach((item,i)=>{
+    const a=materialsView.answers[i]||[];
+    const ok=a.length===item.answer.length&&item.answer.every(x=>a.includes(x));
+    if(ok)correct++;
+  });
+  const pct=Math.round(correct/q.items.length*100);
+  // Сохранение в статистику
+  const attempt={disc:materialsView.disc,quizId:q.id,quizTitle:q.title,correct,total:q.items.length,pct,date:nowISO()};
+  state.materials.stats.attempts.unshift(attempt);
+  if(state.materials.stats.attempts.length>50)state.materials.stats.attempts.length=50;
+  const best=state.materials.stats.best[q.id];
+  if(!best||pct>best.pct)state.materials.stats.best[q.id]=pct;
+  save();
+  renderMaterials();
+}
+
+function renderQuizResult(area){
+  const q=materialsView.quiz;
+  const total=q.items.length;
+  let correct=0;
+  const details=[];
+  q.items.forEach((item,i)=>{
+    const a=materialsView.answers[i]||[];
+    const ok=a.length===item.answer.length&&item.answer.every(x=>a.includes(x));
+    if(ok)correct++;
+    details.push({item,answer:a,ok});
+  });
+  const wrong=total-correct;
+  const pct=Math.round(correct/total*100);
+  const grade=pct>=90?'Отлично':pct>=75?'Хорошо':pct>=60?'Удовлетворительно':'Требуется подготовка';
+  const ringColor=pct>=75?'var(--green)':pct>=60?'var(--amber)':'var(--red)';
+  let html='<div class="card"><h2>Результат теста</h2>';
+  html+='<div class="result-ring" style="background:conic-gradient('+ringColor+' '+pct*3.6+'deg,#f3f4f6 0)"><div style="background:#fff;width:78px;height:78px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font-size:22px;color:'+ringColor+'">'+pct+'%</span><span style="font-size:10px;color:var(--muted)">правильных</span></div></div>';
+  html+='<div class="stat-grid">'+
+    '<div class="stat green"><div class="num">'+correct+'</div><div class="lbl">Правильно</div></div>'+
+    '<div class="stat red"><div class="num">'+wrong+'</div><div class="lbl">Неправильно</div></div>'+
+    '<div class="stat blue"><div class="num">'+pct+'%</div><div class="lbl">Результат</div></div>'+
+    '<div class="stat purple"><div class="num" style="font-size:14px">'+escapeHtml(grade)+'</div><div class="lbl">Оценка</div></div>'+
+  '</div>';
+  html+='<button class="btn btn-teal" id="resAddTask" style="margin-top:10px">Повторить тему (добавить задачу)</button>';
+  html+='<div class="btn-row" style="margin-top:8px"><button class="btn btn-secondary" id="resRetry">Пройти заново</button>'+
+    '<button class="btn btn-ghost" id="resExit">К списку тестов</button></div></div>';
+  html+='<div class="card"><h2>Разбор ответов</h2>';
+  details.forEach((d,i)=>{
+    const cls=d.ok?'correct':'wrong';
+    html+='<div class="quiz-card"><div class="qc-title">'+(i+1)+'. '+escapeHtml(d.item.q)+'</div>';
+    html+='<div class="badge '+(d.ok?'b-done':'b-overdue')+'">'+(d.ok?'Верно':'Неверно')+'</div>';
+    d.item.options.forEach((opt,j)=>{
+      const isAns=d.item.answer.includes(j);
+      const isUser=d.answer.includes(j);
+      let ocls='';
+      if(isAns)ocls='correct';
+      else if(isUser)ocls='wrong';
+      html+='<div class="q-option '+ocls+'"><span class="qo-mark">'+String.fromCharCode(65+j)+'</span><span>'+escapeHtml(opt)+'</span>'+
+        (isAns?' ✓':'')+(isUser&&!isAns?' ✗':'')+'</div>';
+    });
+    html+='<div class="q-explain">💡 '+escapeHtml(d.item.explain)+'</div></div>';
+  });
+  html+='</div>';
+  area.innerHTML=html;
+  document.getElementById('resRetry').onclick=()=>{
+    materialsView.answers=new Array(q.items.length).fill(null);
+    materialsView.qIdx=0;materialsView.finished=false;renderMaterials();
+  };
+  document.getElementById('resExit').onclick=()=>{materialsView.quiz=null;materialsView.finished=false;renderMaterials();};
+  document.getElementById('resAddTask').onclick=()=>{
+    if(!confirm('Добавить задачу «Повторить: '+q.title+'» в планировщик?'))return;
+    const dl=state.weekEnd?state.weekEnd+'T23:59':addDaysISO(todayISO(),3)+'T23:59';
+    state.tasks.push({id:uid(),title:'Повторить: '+q.title,deadline:dl,duration:90,priority:pct<60?'high':'mid',link:'',allowSplit:true,status:'planned',remaining:90});
+    save();renderTaskList();
+    toast('Задача на повторение добавлена во вкладку «Учебные задачи»','ok');
+  };
+}
+
+function renderMaterialsStats(){
+  const att=state.materials.stats.attempts;
+  let html='<div class="card"><h2>Статистика подготовки</h2>';
+  if(!att.length){html+='<p class="empty">Вы ещё не проходили тесты. Результаты появятся здесь.</p>';html+='</div>';return html;}
+  const avg=Math.round(att.reduce((s,a)=>s+a.pct,0)/att.length);
+  const byDisc={};
+  att.forEach(a=>{byDisc[a.disc]=(byDisc[a.disc]||[]);byDisc[a.disc].push(a);});
+  html+='<div class="stat-grid">'+
+    '<div class="stat blue"><div class="num">'+att.length+'</div><div class="lbl">Тестов пройдено</div></div>'+
+    '<div class="stat purple"><div class="num">'+avg+'%</div><div class="lbl">Средний результат</div></div>'+
+  '</div>';
+  // Слабые дисциплины (средний % < 75)
+  const weak=[];
+  Object.keys(byDisc).forEach(d=>{
+    const ds=byDisc[d];const a=Math.round(ds.reduce((s,x)=>s+x.pct,0)/ds.length);
+    const name=MATERIALS.disciplines.find(x=>x.id===d)?.name||d;
+    if(a<75)weak.push({name,a});
+  });
+  if(weak.length){
+    html+='<hr><div style="font-size:13px;font-weight:600;margin-bottom:4px">Требуют подготовки</div>';
+    weak.forEach(w=>html+='<div class="diff-line diff-moved">'+escapeHtml(w.name)+' — средний '+w.a+'%</div>');
+  }
+  // Последние попытки
+  html+='<hr><div style="font-size:13px;font-weight:600;margin-bottom:4px">Последние попытки</div>';
+  att.slice(0,5).forEach(a=>{
+    const name=MATERIALS.disciplines.find(x=>x.id===a.disc)?.name||a.disc;
+    const cls=a.pct>=75?'diff-added':'diff-removed';
+    html+='<div class="diff-line '+cls+'">'+escapeHtml(name)+' · '+escapeHtml(a.quizTitle)+' — '+a.pct+'% ('+a.correct+'/'+a.total+') · '+fmtDateTime(new Date(a.date))+'</div>';
+  });
+  html+='</div>';
+  return html;
+}
+
+/* ---------- Вкладка «Календарь и экспорт» ---------- */
+function renderCalendar(){
+  const area=document.getElementById('calendarArea');
+  if(!area)return;
+  let html='';
+  // 7.1 Живой календарь — демо подписка
+  html+='<div class="card"><h2>Живой календарь</h2>';
+  html+='<span class="demo-tag">Демонстрационный режим</span>';
+  html+='<p class="small" style="margin-top:6px">Подпишитесь на календарь, чтобы видеть расписание в Apple Calendar, Outlook или Google Calendar. В этом прототипе подписка демонстрируется интерактивно — реальная автоматическая синхронизация требует сервера.</p>';
+  html+='<div class="field"><label>Период обновления подписки</label><div class="seg" id="syncSeg">'+
+    ['15 мин','1 ч','6 ч','1 день'].map((t,i)=>'<button data-sync="'+['15m','1h','6h','1d'][i]+'"'+(state.calendar.syncInterval==['15m','1h','6h','1d'][i]?' class="active"':'')+'>'+t+'</button>').join('')+
+  '</div></div>';
+  const subUrl='https://weekplan.demo/sync/'+encodeURIComponent(state.uni.group||'group')+'/calendar.ics';
+  // Apple / Outlook
+  html+='<div class="sub-card"><div class="sc-title">🍎 Apple Calendar / Outlook</div>'+
+    '<div class="sc-instr">Скопируйте ссылку подписки и добавьте её в настройки календаря.</div>'+
+    '<ol class="sc-steps"><li>Откройте «Настройки календаря» → «Учётные записи» → «Добавить»</li>'+
+    '<li>Выберите «Добавить подписной календарь»</li>'+
+    '<li>Вставьте ссылку и подтвердите</li></ol>'+
+    '<div class="copy-row"><input id="icsApple" value="'+subUrl+'" readonly><button class="mini primary" data-copy="icsApple">Копировать</button></div></div>';
+  // Google
+  html+='<div class="sub-card"><div class="sc-title">📅 Google Calendar</div>'+
+    '<div class="sc-instr">Добавьте календарь по ссылке в настройках Google Calendar.</div>'+
+    '<ol class="sc-steps"><li>Откройте Google Calendar → «Настройки»</li>'+
+    '<li>Слева выберите «Добавить календарь» → «По URL»</li>'+
+    '<li>Вставьте ссылку и нажмите «Добавить календарь»</li></ol>'+
+    '<div class="copy-row"><input id="icsGoogle" value="'+subUrl+'" readonly><button class="mini primary" data-copy="icsGoogle">Копировать</button></div>'+
+    '<button class="mini ghost" id="gcalSettings" style="margin-top:6px">Открыть настройки Google Calendar ↗</button></div>';
+  // Статус подключения
+  const connCls=state.calendar.connected?'ok':'warn';
+  const connTxt=state.calendar.connected?('Подключено · автообновление каждые '+syncLabel(state.calendar.syncInterval)):'Не подключено (демо-режим)';
+  html+='<div class="status-line"><span class="dot '+connCls+'"></span><span>'+connTxt+'</span></div>';
+  html+='<p class="small">В календарь включаются: университетские пары, рабочие смены, личные мероприятия и учебные сессии из плана. Выполненные задачи исключаются.</p>';
+  html+='<div class="btn-row"><button class="btn '+(state.calendar.connected?'btn-danger':'btn-teal')+'" id="toggleConn">'+(state.calendar.connected?'Отключить подписку':'Подключить (демо)')+'</button></div>';
+  html+='</div>';
+
+  // 7.2 Разовая выгрузка
+  html+='<div class="card"><h2>Разовая выгрузка в .ics</h2>';
+  html+='<p class="small">Скачайте файл формата iCalendar и импортируйте его в любое календарное приложение. Это не автоматическая синхронизация — файл формируется один раз для выбранного периода.</p>';
+  html+='<div class="field"><label>Период выгрузки</label><div class="seg" id="expSeg">'+
+    ['Одна неделя','Две недели','Один месяц','Всё'].map((t,i)=>'<button data-exp="'+['1w','2w','1m','all'][i]+'"'+(i===0?' class="active"':'')+'>'+t+'</button>').join('')+
+  '</div></div>';
+  html+='<div class="field"><label>Включить в файл</label><div class="checkbox-row">'+
+    '<label><input type="checkbox" id="expUni" checked> Университетские пары</label>'+
+    '<label><input type="checkbox" id="expWork" checked> Рабочие смены</label>'+
+    '<label><input type="checkbox" id="expPersonal" checked> Личные мероприятия</label>'+
+    '<label><input type="checkbox" id="expStudy" checked> Учебные сессии из плана</label>'+
+  '</div></div>';
+  html+='<p class="small">Часовой пояс: Europe/Moscow. Файл содержит UID, DTSTART, DTEND, SUMMARY и DESCRIPTION.</p>';
+  html+='<button class="btn btn-primary" id="downloadIcs">⬇ Скачать .ics файл</button>';
+  html+='</div>';
+  area.innerHTML=html;
+
+  // Сегмент синхронизации
+  area.querySelectorAll('#syncSeg button').forEach(b=>b.onclick=()=>{
+    area.querySelectorAll('#syncSeg button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    state.calendar.syncInterval=b.dataset.sync;save();
+  });
+  // Кнопки копирования
+  area.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>{
+    const inp=document.getElementById(b.dataset.copy);
+    inp.select();inp.setSelectionRange(0,99999);
+    try{document.execCommand('copy');toast('Ссылка скопирована (демо)','ok');}
+    catch(e){toast('Не удалось скопировать','err');}
+  });
+  // Настройки Google
+  const gs=document.getElementById('gcalSettings');
+  if(gs)gs.onclick=()=>{toast('В реальном приложении открылись бы настройки Google Calendar','ok');};
+  // Подключение
+  const tc=document.getElementById('toggleConn');
+  if(tc)tc.onclick=()=>{
+    state.calendar.connected=!state.calendar.connected;save();renderCalendar();
+    toast(state.calendar.connected?'Подписка подключена (демо)':'Подписка отключена','ok');
+  };
+  // Период выгрузки
+  let expPeriod='1w';
+  area.querySelectorAll('#expSeg button').forEach(b=>b.onclick=()=>{
+    area.querySelectorAll('#expSeg button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');expPeriod=b.dataset.exp;
+  });
+  // Скачивание
+  document.getElementById('downloadIcs').onclick=()=>{
+    const opts={
+      uni:document.getElementById('expUni').checked,
+      work:document.getElementById('expWork').checked,
+      personal:document.getElementById('expPersonal').checked,
+      study:document.getElementById('expStudy').checked,
+      period:expPeriod
+    };
+    const blob=generateICS(opts);
+    if(!blob){toast('Нет событий для выгрузки','err');return;}
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='weekplan-'+todayISO()+'.ics';
+    document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},100);
+    toast('Файл .ics скачан','ok');
+  };
+}
+
+function syncLabel(s){return {['15m']:'15 мин',['1h']:'1 ч',['6h']:'6 ч',['1d']:'1 день'}[s]||s;}
+
+/* Генерация ICS. Возвращает Blob или null. */
+function generateICS(opts){
+  // Диапазон дат
+  let startISO=state.weekStart||todayISO();
+  let endISO=state.weekEnd||addDaysISO(startISO,6);
+  if(opts.period==='2w')endISO=addDaysISO(startISO,13);
+  else if(opts.period==='1m')endISO=addDaysISO(startISO,29);
+  else if(opts.period==='all'){startISO='2000-01-01';endISO='2100-01-01';}
+  const events=[];
+  // Фиксированные события
+  state.fixed.forEach(f=>{
+    if(f.date<startISO||f.date>endISO)return;
+    if(f.origin==='uni'&&!opts.uni)return;
+    if(f.origin!=='uni'){
+      if(f.type==='work'&&!opts.work)return;
+      if(f.type==='personal'&&!opts.personal)return;
+      if((f.type==='study'||f.type==='other')&&!opts.personal&&!opts.work)return;
+    }
+    events.push({
+      uid:f.id+'@weekplan',
+      start:f.date+'T'+f.start+':00',
+      end:f.date+'T'+f.end+':00',
+      summary:f.title,
+      desc:[f.type==='work'?'Рабочая смена':f.type==='study'?'Учёба':f.type==='personal'?'Личное':'Событие',
+            f.teacher?('Преподаватель: '+f.teacher):'',
+            f.room?('Аудитория: '+f.room):'',f.note].filter(Boolean).join('\\n'),
+      location:f.room||''
+    });
+  });
+  // Учебные сессии из плана
+  if(opts.study&&state.plan&&state.plan.placed){
+    state.plan.placed.forEach(pl=>{
+      (pl.sessions||[]).forEach((s,i)=>{
+        const sd=s.s instanceof Date?s.s:new Date(s.s);
+        const ed=s.e instanceof Date?s.e:new Date(s.e);
+        if(sd.toISOString().slice(0,10)<startISO||sd.toISOString().slice(0,10)>endISO)return;
+        events.push({
+          uid:pl.task.id+'-s'+i+'@weekplan',
+          start:icsDT(sd),
+          end:icsDT(ed),
+          summary:'Уч. задача: '+pl.task.title+(pl.partial?' (сессия)':''),
+          desc:'Учебная сессия\\nДедлайн: '+fmtDateTime(new Date(pl.task.deadline+':00'))+(pl.task.link?('\\nМатериалы: '+pl.task.link):''),
+          location:''
+        });
+      });
+    });
+  }
+  if(!events.length)return null;
+  // ICS в UTC с TZID Europe/Moscow через DTSTART;TZID для простоты используем «плавающее» локальное время
+  let ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//WeekPlan//RU//','CALSCALE:GREGORIAN','METHOD:PUBLISH'];
+  events.forEach(e=>{
+    ics.push('BEGIN:VEVENT');
+    ics.push('UID:'+e.uid);
+    ics.push('DTSTAMP:'+icsStamp());
+    ics.push('DTSTART;TZID=Europe/Moscow:'+e.start.replace(/[:-]/g,''));
+    ics.push('DTEND;TZID=Europe/Moscow:'+e.end.replace(/[:-]/g,''));
+    ics.push('SUMMARY:'+icsEscape(e.summary));
+    ics.push('DESCRIPTION:'+icsEscape(e.desc));
+    if(e.location)ics.push('LOCATION:'+icsEscape(e.location));
+    ics.push('END:VEVENT');
+  });
+  ics.push('END:VCALENDAR');
+  return new Blob([ics.join('\r\n')],{type:'text/calendar;charset=utf-8'});
+}
+function icsDT(d){return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'T'+pad(d.getHours())+pad(d.getMinutes())+'00';}
+function icsStamp(){const d=new Date();return d.getUTCFullYear()+pad(d.getUTCMonth()+1)+pad(d.getUTCDate())+'T'+pad(d.getUTCHours())+pad(d.getUTCMinutes())+pad(d.getUTCSeconds())+'Z';}
+function icsEscape(s){return String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');}
+
+/* ---------- Пример ---------- */
+function loadExample(){
+  const today=new Date();today.setHours(0,0,0,0);
+  let dow=today.getDay();dow=dow===0?6:dow-1;
+  const monday=new Date(today);monday.setDate(today.getDate()-dow);
+  const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  const start=iso(monday);
+  const end=iso(new Date(monday.getTime()+6*86400000));
+
+  state.weekStart=start;
+  state.weekEnd=end;
+  state.buffer=15;
+  // Очищаем manual-события (uni будут перезагружены)
+  state.fixed=state.fixed.filter(f=>f.origin==='uni');
+  state.free=[
+    {id:uid(),date:start,start:'20:00',end:'22:00'},
+    {id:uid(),date:addDaysISO(start,1),start:'12:30',end:'15:00'},
+    {id:uid(),date:addDaysISO(start,1),start:'16:00',end:'21:00'},
+    {id:uid(),date:addDaysISO(start,2),start:'15:30',end:'23:00'},
+    {id:uid(),date:addDaysISO(start,3),start:'14:00',end:'18:00'},
+    {id:uid(),date:addDaysISO(start,4),start:'15:30',end:'23:00'},
+    {id:uid(),date:addDaysISO(start,5),start:'11:00',end:'18:00'},
+  ];
+  state.tasks=[
+    {id:uid(),title:'Доделать эссе по философии',deadline:addDaysISO(start,3)+'T18:00',duration:90,priority:'high',link:'',allowSplit:false,status:'planned',remaining:90},
+    {id:uid(),title:'Домашняя работа по программированию',deadline:addDaysISO(start,2)+'T23:59',duration:120,priority:'high',link:'',allowSplit:true,status:'planned',remaining:120},
+    {id:uid(),title:'Подготовка к контрольной по матанализу',deadline:addDaysISO(start,4)+'T12:00',duration:180,priority:'high',link:'',allowSplit:true,status:'planned',remaining:180},
+    {id:uid(),title:'Конспект по истории',deadline:addDaysISO(start,5)+'T23:59',duration:60,priority:'mid',link:'',allowSplit:false,status:'planned',remaining:60},
+    {id:uid(),title:'Подготовка курсовой (долгая, с дроблением)',deadline:addDaysISO(start,4)+'T23:59',duration:300,priority:'mid',link:'',allowSplit:true,status:'planned',remaining:300},
+  ];
+  state.plan=null;
+  // Загружаем демо-расписание вуза
+  state.uni.group='15.14Д-ГГ02/23б';
+  state.uni.schemaVersion=0;
+  refreshUniSchedule({bumpSchema:false});
+  save();
+  renderWeekInputs();renderFixedList();renderFreeList();renderTaskList();renderResult();renderTemplateList();
+  toast('Пример загружен. Пара вуза и события готовы. Нажмите «Рассчитать план».','ok');
+}
+
+/* ---------- Очистка ---------- */
+function clearWeek(){
+  if(!confirm('Удалить все личные события, окна, задачи и параметры недели? Пары вуза и материалы сохранятся.'))return;
+  state.fixed=state.fixed.filter(f=>f.origin==='uni');
+  state.free=[];
+  state.tasks=[];
+  state.plan=null;
+  state.weekStart='';state.weekEnd='';state.buffer=15;
+  save();
+  renderWeekInputs();renderFixedList();renderFreeList();renderTaskList();renderResult();
+  toast('Неделя очищена','ok');
+}
+
+/* ---------- Инициализация ---------- */
+function bindEvents(){
+  document.getElementById('tabs').addEventListener('click',e=>{
+    const b=e.target.closest('.tab');if(b)switchTab(b.dataset.tab);
+  });
+  document.getElementById('saveWeek').onclick=()=>{
+    const p={weekStart:val('weekStart'),weekEnd:val('weekEnd'),buffer:Number(val('buffer'))};
+    const errs=validateWeekParams(p);
+    if(errs.length){toast(errs[0],'err');return;}
+    state.weekStart=p.weekStart;state.weekEnd=p.weekEnd;state.buffer=p.buffer;
+    save();toast('Параметры недели сохранены','ok');
+  };
+  document.getElementById('loadExample').onclick=loadExample;
+  document.getElementById('clearWeek').onclick=clearWeek;
+  document.getElementById('replanBtn').onclick=replanWeek;
+  document.getElementById('copyWeekBtn').onclick=copyPrevWeek;
+  document.getElementById('saveTemplateBtn').onclick=saveTemplate;
+  document.getElementById('applyTemplateBtn').onclick=applyTemplate;
+  document.getElementById('calcBtn').onclick=()=>{
+    const errs=validateWeekParams({weekStart:state.weekStart,weekEnd:state.weekEnd,buffer:state.buffer});
+    if(errs.length){toast('Сначала задайте параметры недели: '+errs[0],'err');switchTab('week');return;}
+    state.plan=buildPlan();
+    save();renderResult();renderTaskList();
+    switchTab('result');
+    toast('План рассчитан','ok');
+  };
+  document.getElementById('addFixed').onclick=()=>modalFixed();
+  document.getElementById('addFree').onclick=()=>modalFree();
+  document.getElementById('addTask').onclick=()=>modalTask();
+  document.getElementById('addRecurring').onclick=createRecurring;
+  document.getElementById('modalBg').addEventListener('click',e=>{if(e.target.id==='modalBg')closeModal();});
+
+  // Расписание вуза
+  document.getElementById('uniSaveGroup').onclick=()=>{
+    state.uni.group=val('uniGroup').trim()||'15.14Д-ГГ02/23б';
+    save();toast('Группа сохранена: '+state.uni.group,'ok');
+    renderUni();
+  };
+  document.getElementById('uniRefresh').onclick=()=>{
+    const res=refreshUniSchedule({bumpSchema:false});
+    renderUni();renderFixedList();
+    toast('Расписание обновлено. Занятий: '+res.count+(res.changed.length?('. Изменений: '+res.changed.length):''),'ok');
+  };
+  document.getElementById('uniSim').onclick=()=>{
+    const res=refreshUniSchedule({bumpSchema:true});
+    renderUni();renderFixedList();
+    const ch=res.changed.length;
+    toast(ch?('Демо-изменение применено: обновлено занятий — '+ch):'Изменений нет','ok');
+  };
+  document.getElementById('uniPrevWeek').onclick=()=>{state.uni.weekOffset--;save();renderUni();};
+  document.getElementById('uniNextWeek').onclick=()=>{state.uni.weekOffset++;save();renderUni();};
+
+  // Делегирование: удаления + статусы + порядок + закрепление + перенос
+  document.body.addEventListener('click',e=>{
+    const df=e.target.closest('[data-del-fixed]');
+    if(df){state.fixed=state.fixed.filter(x=>x.id!==df.dataset.delFixed);save();renderFixedList();return;}
+    const dfr=e.target.closest('[data-del-free]');
+    if(dfr){state.free=state.free.filter(x=>x.id!==dfr.dataset.delFree);save();renderFreeList();return;}
+    const dt=e.target.closest('[data-del-task]');
+    if(dt){state.tasks=state.tasks.filter(x=>x.id!==dt.dataset.delTask);save();renderTaskList();return;}
+    const dtpl=e.target.closest('[data-del-tpl]');
+    if(dtpl){state.templates=state.templates.filter(x=>x.id!==dtpl.dataset.delTpl);save();renderTemplateList();return;}
+    const et=e.target.closest('[data-edit-task]');
+    if(et){modalTask(et.dataset.editTask);return;}
+    const up=e.target.closest('[data-order-up]');
+    if(up){moveTaskOrder(up.dataset.orderUp,'up');return;}
+    const dn=e.target.closest('[data-order-down]');
+    if(dn){moveTaskOrder(dn.dataset.orderDown,'down');return;}
+    const pin=e.target.closest('[data-pin-task]');
+    if(pin){pinTask(pin.dataset.pinTask);return;}
+    const mv=e.target.closest('[data-move-task]');
+    if(mv){moveTaskTime(mv.dataset.moveTask);return;}
+  });
+  // Смена статуса
+  document.body.addEventListener('change',e=>{
+    const ss=e.target.closest('[data-status-task]');
+    if(ss){
+      const t=state.tasks.find(x=>x.id===ss.dataset.statusTask);
+      if(t){t.status=ss.value;save();renderTaskList();}
+    }
+  });
+}
+
+function init(){
+  load();
+  syncTaskStatuses();
+  // Автозагрузка расписания вуза при первом открытии, если есть группа и неделя
+  if(state.uni.group&&state.weekStart&&!state.uni.schedule.length){
+    refreshUniSchedule({bumpSchema:false});
+  }
+  renderWeekInputs();renderFixedList();renderFreeList();renderTaskList();renderResult();renderTemplateList();
+  bindEvents();
+}
+init();
+
+
+</script>
+</body>
+</html>
